@@ -1,17 +1,140 @@
-<h2>Shape Creator</h2>
-<p>Count: <input id="count" type="number" value="5"></p>
-<button id="create">Create</button>
-<button id="cancel">Cancel</button>
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadcn to Figma</title>
+    <style>
+        :root {
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            --primary: #18181b;
+            --primary-foreground: #fafafa;
+            --secondary: #f4f4f5;
+            --secondary-foreground: #18181b;
+            --muted: #f4f4f5;
+            --muted-foreground: #71717a;
+            --border: #e4e4e7;
+            --input: #e4e4e7;
+            --ring: #18181b;
+            --radius: 0.5rem;
+        }
 
-document.getElementById('create').onclick = () => {
-  const textbox = document.getElementById('count');
-  const count = parseInt(textbox.value, 10);
-  parent.postMessage({ pluginMessage: { type: 'create-shapes', count } }, '*')
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 16px;
+            color: var(--primary);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+
+        p {
+            font-size: 12px;
+            color: var(--muted-foreground);
+            margin: 0 0 12px 0;
+            line-height: 1.5;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input);
+            border-radius: var(--radius);
+            font-family: monospace;
+            font-size: 12px;
+            resize: none;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 1px var(--ring);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 8px;
+            font-size: 11px;
+            min-height: 16px;
+        }
+
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h2>Shadcn CSS to Variables</h2>
+    <p>Paste your <code>globals.css</code> content below (including :root and .dark blocks).</p>
+    <textarea id="cssInput" placeholder=":root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  ...
 }
 
-document.getElementById('cancel').onclick = () => {
-  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
-}
+.dark {
+  --background: 222.2 84% 4.9%;
+  ...
+}"></textarea>
+    <button id="generateBtn">Generate Variables</button>
+    <div id="status"></div>
 
-</script>
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const cssInput = document.getElementById('cssInput');
+        const status = document.getElementById('status');
+
+        generateBtn.onclick = () => {
+            const css = cssInput.value;
+            if (!css.trim()) {
+                showStatus('Please paste some CSS first.', 'error');
+                return;
+            }
+
+            parent.postMessage({ pluginMessage: { type: 'generate-variables', css } }, '*');
+        };
+
+        window.onmessage = (event) => {
+            const msg = event.data.pluginMessage;
+            if (msg.type === 'status') {
+                showStatus(msg.message, msg.status);
+            }
+        };
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = type;
+        }
+    </script>
+</body>
+</html>

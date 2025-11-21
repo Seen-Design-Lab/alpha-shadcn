@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// Default Shadcn UI tokens (latest OKLCH format)
+// Default Shadcn UI tokens (latest OKLCH format + Typography + Spacing)
 const DEFAULT_SHADCN_CSS = `
 :root {
   --radius: 0.625rem;
@@ -44,6 +44,34 @@ const DEFAULT_SHADCN_CSS = `
   --sidebar-accent-foreground: 0.205 0 0;
   --sidebar-border: 0.922 0 0;
   --sidebar-ring: 0.708 0 0;
+  
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+  
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
 }
 
 .dark {
@@ -83,11 +111,9 @@ const DEFAULT_SHADCN_CSS = `
 `;
 // Helper to convert OKLCH to RGB
 function oklchToRgb(l, c, h) {
-    // OKLCH to OKLab
     const hRad = (h * Math.PI) / 180;
     const a = c * Math.cos(hRad);
     const b = c * Math.sin(hRad);
-    // OKLab to Linear RGB
     const l_ = l + 0.3963377774 * a + 0.2158037573 * b;
     const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
     const s_ = l - 0.0894841775 * a - 1.2914855480 * b;
@@ -97,7 +123,6 @@ function oklchToRgb(l, c, h) {
     const r_linear = +4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
     const g_linear = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
     const b_linear = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3;
-    // Linear RGB to sRGB (gamma correction)
     const toSrgb = (c) => {
         const abs = Math.abs(c);
         if (abs <= 0.0031308)
@@ -110,9 +135,7 @@ function oklchToRgb(l, c, h) {
         b: Math.max(0, Math.min(1, toSrgb(b_linear)))
     };
 }
-// Helper to parse OKLCH string "0.145 0 0" or "0.577 0.245 27.325" or "1 0 0 / 10%"
 function parseOklch(value) {
-    // Match OKLCH format: L C H or L C H / A%
     const parts = value.match(/([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+)%?)?/);
     if (parts && parts.length >= 4) {
         const l = parseFloat(parts[1]);
@@ -124,7 +147,6 @@ function parseOklch(value) {
     }
     return null;
 }
-// Helper to convert HSL string to RGB
 function hslToRgb(h, s, l) {
     s /= 100;
     l /= 100;
@@ -133,11 +155,8 @@ function hslToRgb(h, s, l) {
     const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
     return { r: f(0), g: f(8), b: f(4) };
 }
-// Helper to parse HSL string "222.2 84% 4.9%" or "222.2, 84%, 4.9%"
 function parseHsl(value) {
-    // Remove "deg" unit if present for hue
     value = value.replace(/deg/g, '');
-    // Match 3 numbers, optionally with % or commas
     const parts = value.match(/([\d.]+)\s*(?:%|,\s*)\s*([\d.]+)\s*(?:%|,\s*)\s*([\d.]+)\s*%?/);
     if (parts && parts.length === 4) {
         const h = parseFloat(parts[1]);
@@ -147,41 +166,35 @@ function parseHsl(value) {
     }
     return null;
 }
-// Helper to check if a value is likely a number (e.g. "0.5rem", "16px", "100")
 function parseNumber(value) {
     if (/^[\d.]+$/.test(value))
         return parseFloat(value);
     if (value.endsWith('rem'))
-        return parseFloat(value) * 16; // Assume 16px base
+        return parseFloat(value) * 16;
     if (value.endsWith('px'))
         return parseFloat(value);
     return null;
 }
 function parseBlock(css, blockName) {
     const tokens = {};
-    // Find the block content
     const blockRegex = new RegExp(`${blockName}\\s*{([^}]*)}`, 's');
     const match = css.match(blockRegex);
     if (!match)
         return tokens;
     const content = match[1];
-    // Match --variable: value;
     const varRegex = /--([\w-]+)\s*:\s*([^;]+);/g;
     let varMatch;
     while ((varMatch = varRegex.exec(content)) !== null) {
         const name = varMatch[1];
         let value = varMatch[2].trim();
-        // Remove oklch() wrapper if present
         if (value.startsWith('oklch(') && value.endsWith(')')) {
             value = value.slice(6, -1);
         }
-        // Try OKLCH first (modern shadcn format)
         const oklch = parseOklch(value);
         if (oklch) {
             tokens[name] = { name, value, type: 'COLOR', parsedValue: oklch };
             continue;
         }
-        // Try HSL (legacy shadcn format)
         const rgb = parseHsl(value);
         if (rgb) {
             tokens[name] = { name, value, type: 'COLOR', parsedValue: rgb };
@@ -196,11 +209,107 @@ function parseBlock(css, blockName) {
     }
     return tokens;
 }
+// Categorize tokens by type
+function categorizeTokens(tokens) {
+    const colors = {};
+    const numbers = {};
+    const strings = {};
+    for (const name in tokens) {
+        const token = tokens[name];
+        if (token.type === 'COLOR') {
+            colors[name] = token;
+        }
+        else if (token.type === 'FLOAT') {
+            numbers[name] = token;
+        }
+        else {
+            strings[name] = token;
+        }
+    }
+    return { colors, numbers, strings };
+}
+// Create text styles
+function createTextStyles() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const textStyles = [
+            { name: 'Heading 1', fontSize: 48, fontWeight: 'Bold', lineHeight: 1.25 },
+            { name: 'Heading 2', fontSize: 36, fontWeight: 'Bold', lineHeight: 1.25 },
+            { name: 'Heading 3', fontSize: 30, fontWeight: 'SemiBold', lineHeight: 1.25 },
+            { name: 'Heading 4', fontSize: 24, fontWeight: 'SemiBold', lineHeight: 1.5 },
+            { name: 'Heading 5', fontSize: 20, fontWeight: 'SemiBold', lineHeight: 1.5 },
+            { name: 'Heading 6', fontSize: 18, fontWeight: 'SemiBold', lineHeight: 1.5 },
+            { name: 'Body Large', fontSize: 18, fontWeight: 'Regular', lineHeight: 1.75 },
+            { name: 'Body', fontSize: 16, fontWeight: 'Regular', lineHeight: 1.5 },
+            { name: 'Body Small', fontSize: 14, fontWeight: 'Regular', lineHeight: 1.5 },
+            { name: 'Caption', fontSize: 12, fontWeight: 'Regular', lineHeight: 1.5 },
+            { name: 'Label', fontSize: 14, fontWeight: 'Medium', lineHeight: 1.5 },
+        ];
+        const existingStyles = yield figma.getLocalTextStylesAsync();
+        // Load all required fonts first
+        const fontsToLoad = [
+            { family: 'Inter', style: 'Bold' },
+            { family: 'Inter', style: 'SemiBold' },
+            { family: 'Inter', style: 'Regular' },
+            { family: 'Inter', style: 'Medium' },
+        ];
+        for (const font of fontsToLoad) {
+            try {
+                yield figma.loadFontAsync(font);
+            }
+            catch (e) {
+                console.warn(`Could not load font ${font.family} ${font.style}, will use default`);
+            }
+        }
+        for (const style of textStyles) {
+            let textStyle = existingStyles.find(s => s.name === `shadcn/${style.name}`);
+            if (!textStyle) {
+                textStyle = figma.createTextStyle();
+                textStyle.name = `shadcn/${style.name}`;
+            }
+            try {
+                textStyle.fontName = { family: 'Inter', style: style.fontWeight };
+                textStyle.fontSize = style.fontSize;
+                textStyle.lineHeight = { value: style.lineHeight * 100, unit: 'PERCENT' };
+            }
+            catch (e) {
+                console.warn(`Could not set font for ${style.name}:`, e);
+            }
+        }
+    });
+}
+// Create effect styles
+function createEffectStyles() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const shadowStyles = [
+            { name: 'Shadow SM', offset: { x: 0, y: 1 }, radius: 2, spread: 0, opacity: 0.05 },
+            { name: 'Shadow', offset: { x: 0, y: 1 }, radius: 3, spread: 0, opacity: 0.1 },
+            { name: 'Shadow MD', offset: { x: 0, y: 4 }, radius: 6, spread: -1, opacity: 0.1 },
+            { name: 'Shadow LG', offset: { x: 0, y: 10 }, radius: 15, spread: -3, opacity: 0.1 },
+            { name: 'Shadow XL', offset: { x: 0, y: 20 }, radius: 25, spread: -5, opacity: 0.1 },
+        ];
+        const existingStyles = yield figma.getLocalEffectStylesAsync();
+        for (const style of shadowStyles) {
+            let effectStyle = existingStyles.find(s => s.name === `shadcn/${style.name}`);
+            if (!effectStyle) {
+                effectStyle = figma.createEffectStyle();
+                effectStyle.name = `shadcn/${style.name}`;
+            }
+            effectStyle.effects = [{
+                    type: 'DROP_SHADOW',
+                    color: { r: 0, g: 0, b: 0, a: style.opacity },
+                    offset: style.offset,
+                    radius: style.radius,
+                    spread: style.spread,
+                    visible: true,
+                    blendMode: 'NORMAL'
+                }];
+        }
+    });
+}
 figma.showUI(__html__, { width: 400, height: 500 });
 figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
     if (msg.type === 'generate-variables') {
         try {
-            // Use default tokens or custom CSS
             const css = msg.useDefault ? DEFAULT_SHADCN_CSS : msg.css;
             const rootTokens = parseBlock(css, ':root');
             const darkTokens = parseBlock(css, '.dark');
@@ -208,67 +317,73 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
                 figma.ui.postMessage({ type: 'status', message: 'No variables found in :root', status: 'error' });
                 return;
             }
-            // Create Collection
+            // Categorize tokens
+            const { colors: rootColors, numbers: rootNumbers } = categorizeTokens(rootTokens);
+            const { colors: darkColors } = categorizeTokens(darkTokens);
+            // Create Color Collection
             const collections = yield figma.variables.getLocalVariableCollectionsAsync();
-            let collection = collections.find(c => c.name === 'shadcn');
-            if (!collection) {
-                collection = figma.variables.createVariableCollection('shadcn');
+            let colorCollection = collections.find(c => c.name === 'shadcn/colors');
+            if (!colorCollection) {
+                colorCollection = figma.variables.createVariableCollection('shadcn/colors');
             }
-            // Setup Modes
-            const modes = collection.modes;
-            let lightModeId = modes[0].modeId;
-            // Rename first mode to Light if it's the default
-            if (modes[0].name === 'Mode 1') {
-                collection.renameMode(lightModeId, 'Light');
+            const colorModes = colorCollection.modes;
+            let lightModeId = colorModes[0].modeId;
+            if (colorModes[0].name === 'Mode 1') {
+                colorCollection.renameMode(lightModeId, 'Light');
             }
             else {
-                // Try to find existing Light mode
-                const light = modes.find(m => m.name === 'Light');
+                const light = colorModes.find(m => m.name === 'Light');
                 if (light)
                     lightModeId = light.modeId;
             }
             let darkModeId = null;
-            if (Object.keys(darkTokens).length > 0) {
-                const dark = modes.find(m => m.name === 'Dark');
+            if (Object.keys(darkColors).length > 0) {
+                const dark = colorModes.find(m => m.name === 'Dark');
                 if (dark) {
                     darkModeId = dark.modeId;
                 }
                 else {
-                    darkModeId = collection.addMode('Dark');
+                    darkModeId = colorCollection.addMode('Dark');
                 }
             }
-            // Create Variables
-            const existingVars = (yield figma.variables.getLocalVariablesAsync()).filter(v => v.variableCollectionId === collection.id);
-            for (const name in rootTokens) {
-                const token = rootTokens[name];
-                let variable = existingVars.find(v => v.name === name);
+            // Create color variables
+            const existingColorVars = (yield figma.variables.getLocalVariablesAsync()).filter(v => v.variableCollectionId === colorCollection.id);
+            for (const name in rootColors) {
+                const token = rootColors[name];
+                let variable = existingColorVars.find(v => v.name === name);
                 if (!variable) {
-                    variable = figma.variables.createVariable(name, collection, token.type);
+                    variable = figma.variables.createVariable(name, colorCollection, 'COLOR');
                 }
-                // Update Light Mode
-                if (token.type === 'COLOR') {
-                    variable.setValueForMode(lightModeId, token.parsedValue);
-                }
-                else if (token.type === 'FLOAT') {
-                    variable.setValueForMode(lightModeId, token.parsedValue);
-                }
-                else {
-                    variable.setValueForMode(lightModeId, token.parsedValue);
-                }
-                // Update Dark Mode
-                if (darkModeId && darkTokens[name]) {
-                    const darkToken = darkTokens[name];
-                    // Ensure types match, otherwise skip or warn? 
-                    // Assuming shadcn consistency, types should match.
-                    if (darkToken.type === token.type) {
-                        variable.setValueForMode(darkModeId, darkToken.parsedValue);
-                    }
+                variable.setValueForMode(lightModeId, token.parsedValue);
+                if (darkModeId && darkColors[name]) {
+                    variable.setValueForMode(darkModeId, darkColors[name].parsedValue);
                 }
             }
+            // Create Number Collection
+            let numberCollection = collections.find(c => c.name === 'shadcn/numbers');
+            if (!numberCollection) {
+                numberCollection = figma.variables.createVariableCollection('shadcn/numbers');
+            }
+            const numberModeId = numberCollection.modes[0].modeId;
+            const existingNumberVars = (yield figma.variables.getLocalVariablesAsync()).filter(v => v.variableCollectionId === numberCollection.id);
+            for (const name in rootNumbers) {
+                const token = rootNumbers[name];
+                let variable = existingNumberVars.find(v => v.name === name);
+                if (!variable) {
+                    variable = figma.variables.createVariable(name, numberCollection, 'FLOAT');
+                }
+                variable.setValueForMode(numberModeId, token.parsedValue);
+            }
+            // Create Text Styles
+            yield createTextStyles();
+            // Create Effect Styles
+            yield createEffectStyles();
+            const colorCount = Object.keys(rootColors).length;
+            const numberCount = Object.keys(rootNumbers).length;
             const source = msg.useDefault ? 'default Shadcn tokens' : 'custom CSS';
             figma.ui.postMessage({
                 type: 'status',
-                message: `Successfully generated ${Object.keys(rootTokens).length} variables from ${source}!`,
+                message: `✓ Generated ${colorCount} color variables, ${numberCount} number variables, 11 text styles, and 5 effect styles from ${source}!`,
                 status: 'success'
             });
         }

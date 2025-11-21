@@ -714,6 +714,816 @@ function generateComponent(componentName, page, findVariable, colorCollection) {
             page.appendChild(frame);
             figma.createComponentFromNode(frame);
         }
+        // PHASE 1: SIMPLE COMPONENTS
+        else if (componentName === 'label') {
+            const frame = figma.createFrame();
+            frame.name = 'Label';
+            frame.layoutMode = 'HORIZONTAL';
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.counterAxisSizingMode = 'AUTO';
+            frame.fills = [];
+            frame.x = 50;
+            frame.y = 50;
+            const text = figma.createText();
+            text.characters = 'Label';
+            text.fontSize = 14;
+            text.fontName = { family: 'Inter', style: 'Medium' };
+            const fgVar = findVariable('foreground');
+            if (fgVar) {
+                text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+            }
+            frame.appendChild(text);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'separator') {
+            // Horizontal separator
+            const hFrame = figma.createFrame();
+            hFrame.name = 'variant=horizontal';
+            hFrame.resize(200, 1);
+            hFrame.x = 50;
+            hFrame.y = 50;
+            const borderVar = findVariable('border');
+            if (borderVar) {
+                hFrame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+            }
+            // Vertical separator
+            const vFrame = figma.createFrame();
+            vFrame.name = 'variant=vertical';
+            vFrame.resize(1, 40);
+            vFrame.x = 270;
+            vFrame.y = 50;
+            if (borderVar) {
+                vFrame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+            }
+            const componentSetFrame = figma.createFrame();
+            componentSetFrame.name = 'Separator';
+            componentSetFrame.layoutMode = 'HORIZONTAL';
+            componentSetFrame.itemSpacing = 16;
+            componentSetFrame.x = 50;
+            componentSetFrame.y = 50;
+            componentSetFrame.fills = [];
+            componentSetFrame.appendChild(hFrame);
+            componentSetFrame.appendChild(vFrame);
+            page.appendChild(componentSetFrame);
+            const components = [];
+            for (const child of componentSetFrame.children) {
+                const component = figma.createComponentFromNode(child);
+                components.push(component);
+            }
+            const componentSet = figma.combineAsVariants(components, componentSetFrame);
+            componentSet.name = 'Separator';
+        }
+        else if (componentName === 'avatar') {
+            const sizes = [
+                { name: 'sm', size: 32 },
+                { name: 'default', size: 40 },
+                { name: 'lg', size: 48 },
+            ];
+            let yOffset = 50;
+            for (const sizeSpec of sizes) {
+                const componentSetFrame = figma.createFrame();
+                componentSetFrame.name = `Avatar/${sizeSpec.name}`;
+                componentSetFrame.layoutMode = 'HORIZONTAL';
+                componentSetFrame.itemSpacing = 16;
+                componentSetFrame.x = 50;
+                componentSetFrame.y = yOffset;
+                componentSetFrame.fills = [];
+                // Image variant
+                const imageFrame = figma.createFrame();
+                imageFrame.name = 'variant=image';
+                imageFrame.resize(sizeSpec.size, sizeSpec.size);
+                imageFrame.cornerRadius = 9999;
+                const mutedVar = findVariable('muted');
+                if (mutedVar) {
+                    imageFrame.fills = [{ type: 'SOLID', color: { r: 0.9, g: 0.9, b: 0.9 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+                }
+                // Fallback variant with initials
+                const fallbackFrame = figma.createFrame();
+                fallbackFrame.name = 'variant=fallback';
+                fallbackFrame.resize(sizeSpec.size, sizeSpec.size);
+                fallbackFrame.cornerRadius = 9999;
+                fallbackFrame.layoutMode = 'HORIZONTAL';
+                fallbackFrame.primaryAxisAlignItems = 'CENTER';
+                fallbackFrame.counterAxisAlignItems = 'CENTER';
+                if (mutedVar) {
+                    fallbackFrame.fills = [{ type: 'SOLID', color: { r: 0.9, g: 0.9, b: 0.9 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+                }
+                const initials = figma.createText();
+                initials.characters = 'AB';
+                initials.fontSize = sizeSpec.size / 2.5;
+                initials.fontName = { family: 'Inter', style: 'Medium' };
+                const mutedFgVar = findVariable('muted-foreground');
+                if (mutedFgVar) {
+                    initials.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedFgVar.id } } }];
+                }
+                fallbackFrame.appendChild(initials);
+                componentSetFrame.appendChild(imageFrame);
+                componentSetFrame.appendChild(fallbackFrame);
+                page.appendChild(componentSetFrame);
+                const components = [];
+                for (const child of componentSetFrame.children) {
+                    const component = figma.createComponentFromNode(child);
+                    components.push(component);
+                }
+                const componentSet = figma.combineAsVariants(components, componentSetFrame);
+                componentSet.name = `Avatar/${sizeSpec.name}`;
+                componentSet.x = 50;
+                componentSet.y = yOffset;
+                yOffset += 80;
+            }
+        }
+        else if (componentName === 'progress') {
+            const variants = [
+                { name: 'default', color: 'primary' },
+                { name: 'destructive', color: 'destructive' },
+            ];
+            const componentSetFrame = figma.createFrame();
+            componentSetFrame.name = 'Progress';
+            componentSetFrame.layoutMode = 'VERTICAL';
+            componentSetFrame.itemSpacing = 16;
+            componentSetFrame.x = 50;
+            componentSetFrame.y = 50;
+            componentSetFrame.fills = [];
+            for (const variant of variants) {
+                const container = figma.createFrame();
+                container.name = `variant=${variant.name}`;
+                container.resize(300, 8);
+                container.cornerRadius = 9999;
+                container.layoutMode = 'HORIZONTAL';
+                const bgVar = findVariable('secondary');
+                if (bgVar) {
+                    container.fills = [{ type: 'SOLID', color: { r: 0.95, g: 0.95, b: 0.95 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+                }
+                const bar = figma.createFrame();
+                bar.name = 'Progress Bar';
+                bar.resize(180, 8);
+                bar.cornerRadius = 9999;
+                const colorVar = findVariable(variant.color);
+                if (colorVar) {
+                    bar.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: colorVar.id } } }];
+                }
+                container.appendChild(bar);
+                componentSetFrame.appendChild(container);
+            }
+            page.appendChild(componentSetFrame);
+            const components = [];
+            for (const child of componentSetFrame.children) {
+                const component = figma.createComponentFromNode(child);
+                components.push(component);
+            }
+            const componentSet = figma.combineAsVariants(components, componentSetFrame);
+            componentSet.name = 'Progress';
+        }
+        else if (componentName === 'skeleton') {
+            const frame = figma.createFrame();
+            frame.name = 'Skeleton';
+            frame.resize(200, 20);
+            frame.cornerRadius = 4;
+            frame.x = 50;
+            frame.y = 50;
+            const mutedVar = findVariable('muted');
+            if (mutedVar) {
+                frame.fills = [{ type: 'SOLID', color: { r: 0.95, g: 0.95, b: 0.95 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+            }
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'switch') {
+            const variants = [
+                { name: 'off', checked: false },
+                { name: 'on', checked: true },
+            ];
+            const componentSetFrame = figma.createFrame();
+            componentSetFrame.name = 'Switch';
+            componentSetFrame.layoutMode = 'HORIZONTAL';
+            componentSetFrame.itemSpacing = 16;
+            componentSetFrame.x = 50;
+            componentSetFrame.y = 50;
+            componentSetFrame.fills = [];
+            for (const variant of variants) {
+                const track = figma.createFrame();
+                track.name = `variant=${variant.name}`;
+                track.resize(44, 24);
+                track.cornerRadius = 9999;
+                track.layoutMode = 'HORIZONTAL';
+                track.primaryAxisAlignItems = variant.checked ? 'MAX' : 'MIN';
+                track.counterAxisAlignItems = 'CENTER';
+                track.paddingLeft = 2;
+                track.paddingRight = 2;
+                const bgVar = findVariable(variant.checked ? 'primary' : 'input');
+                if (bgVar) {
+                    track.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+                }
+                const thumb = figma.createFrame();
+                thumb.name = 'Thumb';
+                thumb.resize(20, 20);
+                thumb.cornerRadius = 9999;
+                thumb.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
+                track.appendChild(thumb);
+                componentSetFrame.appendChild(track);
+            }
+            page.appendChild(componentSetFrame);
+            const components = [];
+            for (const child of componentSetFrame.children) {
+                const component = figma.createComponentFromNode(child);
+                components.push(component);
+            }
+            const componentSet = figma.combineAsVariants(components, componentSetFrame);
+            componentSet.name = 'Switch';
+        }
+        else if (componentName === 'slider') {
+            const frame = figma.createFrame();
+            frame.name = 'Slider';
+            frame.resize(300, 20);
+            frame.layoutMode = 'HORIZONTAL';
+            frame.primaryAxisAlignItems = 'CENTER';
+            frame.counterAxisAlignItems = 'CENTER';
+            frame.x = 50;
+            frame.y = 50;
+            frame.fills = [];
+            const track = figma.createFrame();
+            track.name = 'Track';
+            track.resize(300, 4);
+            track.cornerRadius = 9999;
+            const bgVar = findVariable('secondary');
+            if (bgVar) {
+                track.fills = [{ type: 'SOLID', color: { r: 0.95, g: 0.95, b: 0.95 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+            }
+            const thumb = figma.createFrame();
+            thumb.name = 'Thumb';
+            thumb.resize(20, 20);
+            thumb.cornerRadius = 9999;
+            thumb.x = 140;
+            thumb.y = 0;
+            const bgVarThumb = findVariable('background');
+            if (bgVarThumb) {
+                thumb.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVarThumb.id } } }];
+            }
+            const borderVar = findVariable('primary');
+            if (borderVar) {
+                thumb.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                thumb.strokeWeight = 2;
+            }
+            frame.appendChild(track);
+            frame.appendChild(thumb);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'toggle') {
+            const variants = [
+                { name: 'default', pressed: false },
+                { name: 'pressed', pressed: true },
+            ];
+            const componentSetFrame = figma.createFrame();
+            componentSetFrame.name = 'Toggle';
+            componentSetFrame.layoutMode = 'HORIZONTAL';
+            componentSetFrame.itemSpacing = 16;
+            componentSetFrame.x = 50;
+            componentSetFrame.y = 50;
+            componentSetFrame.fills = [];
+            for (const variant of variants) {
+                const frame = figma.createFrame();
+                frame.name = `variant=${variant.name}`;
+                frame.layoutMode = 'HORIZONTAL';
+                frame.primaryAxisAlignItems = 'CENTER';
+                frame.counterAxisAlignItems = 'CENTER';
+                frame.primaryAxisSizingMode = 'AUTO';
+                frame.paddingLeft = 12;
+                frame.paddingRight = 12;
+                frame.paddingTop = 8;
+                frame.paddingBottom = 8;
+                frame.cornerRadius = 6;
+                frame.resize(80, 36);
+                const bgVar = findVariable(variant.pressed ? 'accent' : 'background');
+                if (bgVar) {
+                    frame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+                }
+                const borderVar = findVariable('input');
+                if (borderVar) {
+                    frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                    frame.strokeWeight = 1;
+                }
+                const text = figma.createText();
+                text.characters = 'Toggle';
+                text.fontSize = 14;
+                text.fontName = { family: 'Inter', style: 'Medium' };
+                const fgVar = findVariable('foreground');
+                if (fgVar) {
+                    text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+                }
+                frame.appendChild(text);
+                componentSetFrame.appendChild(frame);
+            }
+            page.appendChild(componentSetFrame);
+            const components = [];
+            for (const child of componentSetFrame.children) {
+                const component = figma.createComponentFromNode(child);
+                components.push(component);
+            }
+            const componentSet = figma.combineAsVariants(components, componentSetFrame);
+            componentSet.name = 'Toggle';
+        }
+        else if (componentName === 'spinner') {
+            const frame = figma.createFrame();
+            frame.name = 'Spinner';
+            frame.resize(24, 24);
+            frame.cornerRadius = 9999;
+            frame.x = 50;
+            frame.y = 50;
+            frame.fills = [];
+            const borderVar = findVariable('primary');
+            if (borderVar) {
+                frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                frame.strokeWeight = 2;
+                frame.dashPattern = [12, 12];
+            }
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        // PHASE 2: FORM COMPONENTS
+        else if (componentName === 'radio-group') {
+            const variants = [
+                { name: 'unchecked', checked: false },
+                { name: 'checked', checked: true },
+            ];
+            const componentSetFrame = figma.createFrame();
+            componentSetFrame.name = 'Radio';
+            componentSetFrame.layoutMode = 'HORIZONTAL';
+            componentSetFrame.itemSpacing = 16;
+            componentSetFrame.x = 50;
+            componentSetFrame.y = 50;
+            componentSetFrame.fills = [];
+            for (const variant of variants) {
+                const frame = figma.createFrame();
+                frame.name = `variant=${variant.name}`;
+                frame.resize(20, 20);
+                frame.cornerRadius = 9999;
+                frame.layoutMode = 'HORIZONTAL';
+                frame.primaryAxisAlignItems = 'CENTER';
+                frame.counterAxisAlignItems = 'CENTER';
+                const bgVar = findVariable('background');
+                if (bgVar) {
+                    frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+                }
+                const borderVar = findVariable('primary');
+                if (borderVar) {
+                    frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                    frame.strokeWeight = 2;
+                }
+                if (variant.checked) {
+                    const dot = figma.createFrame();
+                    dot.name = 'Dot';
+                    dot.resize(10, 10);
+                    dot.cornerRadius = 9999;
+                    if (borderVar) {
+                        dot.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                    }
+                    frame.appendChild(dot);
+                }
+                componentSetFrame.appendChild(frame);
+            }
+            page.appendChild(componentSetFrame);
+            const components = [];
+            for (const child of componentSetFrame.children) {
+                const component = figma.createComponentFromNode(child);
+                components.push(component);
+            }
+            const componentSet = figma.combineAsVariants(components, componentSetFrame);
+            componentSet.name = 'Radio';
+        }
+        else if (componentName === 'select') {
+            const frame = figma.createFrame();
+            frame.name = 'Select';
+            frame.layoutMode = 'HORIZONTAL';
+            frame.primaryAxisAlignItems = 'CENTER';
+            frame.counterAxisAlignItems = 'CENTER';
+            frame.primaryAxisSizingMode = 'FIXED';
+            frame.paddingLeft = 12;
+            frame.paddingRight = 12;
+            frame.paddingTop = 8;
+            frame.paddingBottom = 8;
+            frame.itemSpacing = 8;
+            frame.cornerRadius = 6;
+            frame.resize(200, 40);
+            frame.x = 50;
+            frame.y = 50;
+            const bgVar = findVariable('background');
+            if (bgVar) {
+                frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+            }
+            const borderVar = findVariable('input');
+            if (borderVar) {
+                frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                frame.strokeWeight = 1;
+            }
+            const text = figma.createText();
+            text.characters = 'Select option...';
+            text.fontSize = 14;
+            text.fontName = { family: 'Inter', style: 'Regular' };
+            text.layoutGrow = 1;
+            const fgVar = findVariable('foreground');
+            if (fgVar) {
+                text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+            }
+            // Chevron icon (simple triangle)
+            const chevron = figma.createFrame();
+            chevron.name = 'Chevron';
+            chevron.resize(12, 12);
+            chevron.fills = [];
+            frame.appendChild(text);
+            frame.appendChild(chevron);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        // PHASE 3: NAVIGATION & LAYOUT
+        else if (componentName === 'accordion') {
+            const frame = figma.createFrame();
+            frame.name = 'Accordion Item';
+            frame.layoutMode = 'VERTICAL';
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.counterAxisSizingMode = 'FIXED';
+            frame.itemSpacing = 0;
+            frame.resize(400, 80);
+            frame.x = 50;
+            frame.y = 50;
+            frame.fills = [];
+            // Header
+            const header = figma.createFrame();
+            header.name = 'Header';
+            header.layoutMode = 'HORIZONTAL';
+            header.primaryAxisAlignItems = 'CENTER';
+            header.counterAxisAlignItems = 'CENTER';
+            header.paddingLeft = 16;
+            header.paddingRight = 16;
+            header.paddingTop = 16;
+            header.paddingBottom = 16;
+            header.itemSpacing = 8;
+            header.resize(400, 56);
+            header.fills = [];
+            const headerText = figma.createText();
+            headerText.characters = 'Accordion Header';
+            headerText.fontSize = 16;
+            headerText.fontName = { family: 'Inter', style: 'Medium' };
+            headerText.layoutGrow = 1;
+            const fgVar = findVariable('foreground');
+            if (fgVar) {
+                headerText.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+            }
+            header.appendChild(headerText);
+            // Separator
+            const separator = figma.createFrame();
+            separator.name = 'Separator';
+            separator.resize(400, 1);
+            const borderVar = findVariable('border');
+            if (borderVar) {
+                separator.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+            }
+            frame.appendChild(header);
+            frame.appendChild(separator);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'breadcrumb') {
+            const frame = figma.createFrame();
+            frame.name = 'Breadcrumb';
+            frame.layoutMode = 'HORIZONTAL';
+            frame.primaryAxisAlignItems = 'CENTER';
+            frame.itemSpacing = 8;
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.x = 50;
+            frame.y = 50;
+            frame.fills = [];
+            const items = ['Home', 'Products', 'Category'];
+            for (let i = 0; i < items.length; i++) {
+                const text = figma.createText();
+                text.characters = items[i];
+                text.fontSize = 14;
+                text.fontName = { family: 'Inter', style: i === items.length - 1 ? 'Medium' : 'Regular' };
+                const fgVar = findVariable(i === items.length - 1 ? 'foreground' : 'muted-foreground');
+                if (fgVar) {
+                    text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+                }
+                frame.appendChild(text);
+                if (i < items.length - 1) {
+                    const separator = figma.createText();
+                    separator.characters = '/';
+                    separator.fontSize = 14;
+                    separator.fontName = { family: 'Inter', style: 'Regular' };
+                    const mutedVar = findVariable('muted-foreground');
+                    if (mutedVar) {
+                        separator.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+                    }
+                    frame.appendChild(separator);
+                }
+            }
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'tooltip') {
+            const frame = figma.createFrame();
+            frame.name = 'Tooltip';
+            frame.layoutMode = 'HORIZONTAL';
+            frame.primaryAxisAlignItems = 'CENTER';
+            frame.counterAxisAlignItems = 'CENTER';
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.paddingLeft = 12;
+            frame.paddingRight = 12;
+            frame.paddingTop = 6;
+            frame.paddingBottom = 6;
+            frame.cornerRadius = 6;
+            frame.x = 50;
+            frame.y = 50;
+            const bgVar = findVariable('primary');
+            if (bgVar) {
+                frame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+            }
+            const text = figma.createText();
+            text.characters = 'Tooltip';
+            text.fontSize = 12;
+            text.fontName = { family: 'Inter', style: 'Medium' };
+            const fgVar = findVariable('primary-foreground');
+            if (fgVar) {
+                text.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+            }
+            frame.appendChild(text);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'pagination') {
+            const frame = figma.createFrame();
+            frame.name = 'Pagination';
+            frame.layoutMode = 'HORIZONTAL';
+            frame.primaryAxisAlignItems = 'CENTER';
+            frame.itemSpacing = 4;
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.x = 50;
+            frame.y = 50;
+            frame.fills = [];
+            const pages = ['Previous', '1', '2', '3', 'Next'];
+            for (let i = 0; i < pages.length; i++) {
+                const button = figma.createFrame();
+                button.name = pages[i];
+                button.layoutMode = 'HORIZONTAL';
+                button.primaryAxisAlignItems = 'CENTER';
+                button.counterAxisAlignItems = 'CENTER';
+                button.paddingLeft = 12;
+                button.paddingRight = 12;
+                button.paddingTop = 8;
+                button.paddingBottom = 8;
+                button.cornerRadius = 6;
+                button.resize(40, 36);
+                const isActive = pages[i] === '2';
+                const bgVar = findVariable(isActive ? 'primary' : 'background');
+                if (bgVar) {
+                    button.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+                }
+                if (!isActive) {
+                    const borderVar = findVariable('input');
+                    if (borderVar) {
+                        button.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                        button.strokeWeight = 1;
+                    }
+                }
+                const text = figma.createText();
+                text.characters = pages[i];
+                text.fontSize = 14;
+                text.fontName = { family: 'Inter', style: 'Medium' };
+                const fgVar = findVariable(isActive ? 'primary-foreground' : 'foreground');
+                if (fgVar) {
+                    text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+                }
+                button.appendChild(text);
+                frame.appendChild(button);
+            }
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        // PHASE 4: OVERLAY & COMPLEX COMPONENTS
+        else if (componentName === 'dialog') {
+            const frame = figma.createFrame();
+            frame.name = 'Dialog';
+            frame.layoutMode = 'VERTICAL';
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.counterAxisSizingMode = 'FIXED';
+            frame.paddingLeft = 24;
+            frame.paddingRight = 24;
+            frame.paddingTop = 24;
+            frame.paddingBottom = 24;
+            frame.itemSpacing = 16;
+            frame.cornerRadius = 12;
+            frame.resize(400, 200);
+            frame.x = 50;
+            frame.y = 50;
+            const bgVar = findVariable('background');
+            if (bgVar) {
+                frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+            }
+            const borderVar = findVariable('border');
+            if (borderVar) {
+                frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                frame.strokeWeight = 1;
+            }
+            // Title
+            const title = figma.createText();
+            title.characters = 'Dialog Title';
+            title.fontSize = 18;
+            title.fontName = { family: 'Inter', style: 'SemiBold' };
+            const fgVar = findVariable('foreground');
+            if (fgVar) {
+                title.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+            }
+            // Description
+            const desc = figma.createText();
+            desc.characters = 'Dialog description goes here';
+            desc.fontSize = 14;
+            desc.fontName = { family: 'Inter', style: 'Regular' };
+            const mutedVar = findVariable('muted-foreground');
+            if (mutedVar) {
+                desc.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+            }
+            // Buttons
+            const buttonRow = figma.createFrame();
+            buttonRow.name = 'Actions';
+            buttonRow.layoutMode = 'HORIZONTAL';
+            buttonRow.primaryAxisAlignItems = 'MAX';
+            buttonRow.itemSpacing = 8;
+            buttonRow.fills = [];
+            frame.appendChild(title);
+            frame.appendChild(desc);
+            frame.appendChild(buttonRow);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'popover') {
+            const frame = figma.createFrame();
+            frame.name = 'Popover';
+            frame.layoutMode = 'VERTICAL';
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.counterAxisSizingMode = 'AUTO';
+            frame.paddingLeft = 16;
+            frame.paddingRight = 16;
+            frame.paddingTop = 12;
+            frame.paddingBottom = 12;
+            frame.itemSpacing = 8;
+            frame.cornerRadius = 8;
+            frame.x = 50;
+            frame.y = 50;
+            const bgVar = findVariable('popover');
+            if (bgVar) {
+                frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+            }
+            const borderVar = findVariable('border');
+            if (borderVar) {
+                frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                frame.strokeWeight = 1;
+            }
+            const text = figma.createText();
+            text.characters = 'Popover content';
+            text.fontSize = 14;
+            text.fontName = { family: 'Inter', style: 'Regular' };
+            const fgVar = findVariable('popover-foreground');
+            if (fgVar) {
+                text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+            }
+            frame.appendChild(text);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'collapsible') {
+            const frame = figma.createFrame();
+            frame.name = 'Collapsible';
+            frame.layoutMode = 'VERTICAL';
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.counterAxisSizingMode = 'FIXED';
+            frame.itemSpacing = 8;
+            frame.resize(400, 60);
+            frame.x = 50;
+            frame.y = 50;
+            frame.fills = [];
+            // Trigger
+            const trigger = figma.createFrame();
+            trigger.name = 'Trigger';
+            trigger.layoutMode = 'HORIZONTAL';
+            trigger.primaryAxisAlignItems = 'CENTER';
+            trigger.counterAxisAlignItems = 'CENTER';
+            trigger.paddingLeft = 16;
+            trigger.paddingRight = 16;
+            trigger.paddingTop = 12;
+            trigger.paddingBottom = 12;
+            trigger.itemSpacing = 8;
+            trigger.cornerRadius = 6;
+            trigger.resize(400, 48);
+            trigger.fills = [];
+            const borderVar = findVariable('border');
+            if (borderVar) {
+                trigger.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                trigger.strokeWeight = 1;
+            }
+            const text = figma.createText();
+            text.characters = 'Collapsible Header';
+            text.fontSize = 14;
+            text.fontName = { family: 'Inter', style: 'Medium' };
+            text.layoutGrow = 1;
+            const fgVar = findVariable('foreground');
+            if (fgVar) {
+                text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+            }
+            trigger.appendChild(text);
+            frame.appendChild(trigger);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
+        else if (componentName === 'table') {
+            const frame = figma.createFrame();
+            frame.name = 'Table';
+            frame.layoutMode = 'VERTICAL';
+            frame.primaryAxisSizingMode = 'AUTO';
+            frame.counterAxisSizingMode = 'FIXED';
+            frame.itemSpacing = 0;
+            frame.resize(600, 150);
+            frame.x = 50;
+            frame.y = 50;
+            const borderVar = findVariable('border');
+            if (borderVar) {
+                frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                frame.strokeWeight = 1;
+            }
+            const bgVar = findVariable('background');
+            if (bgVar) {
+                frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+            }
+            // Header row
+            const headerRow = figma.createFrame();
+            headerRow.name = 'Header Row';
+            headerRow.layoutMode = 'HORIZONTAL';
+            headerRow.itemSpacing = 0;
+            headerRow.resize(600, 48);
+            headerRow.fills = [];
+            const mutedVar = findVariable('muted');
+            if (mutedVar) {
+                headerRow.fills = [{ type: 'SOLID', color: { r: 0.98, g: 0.98, b: 0.98 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+            }
+            const headers = ['Name', 'Status', 'Role'];
+            for (const header of headers) {
+                const cell = figma.createFrame();
+                cell.name = header;
+                cell.layoutMode = 'HORIZONTAL';
+                cell.primaryAxisAlignItems = 'MIN';
+                cell.counterAxisAlignItems = 'CENTER';
+                cell.paddingLeft = 16;
+                cell.paddingRight = 16;
+                cell.paddingTop = 12;
+                cell.paddingBottom = 12;
+                cell.layoutGrow = 1;
+                cell.fills = [];
+                const text = figma.createText();
+                text.characters = header;
+                text.fontSize = 14;
+                text.fontName = { family: 'Inter', style: 'Medium' };
+                const fgVar = findVariable('foreground');
+                if (fgVar) {
+                    text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+                }
+                cell.appendChild(text);
+                headerRow.appendChild(cell);
+            }
+            // Data row
+            const dataRow = figma.createFrame();
+            dataRow.name = 'Data Row';
+            dataRow.layoutMode = 'HORIZONTAL';
+            dataRow.itemSpacing = 0;
+            dataRow.resize(600, 48);
+            dataRow.fills = [];
+            const data = ['John Doe', 'Active', 'Admin'];
+            for (const value of data) {
+                const cell = figma.createFrame();
+                cell.name = value;
+                cell.layoutMode = 'HORIZONTAL';
+                cell.primaryAxisAlignItems = 'MIN';
+                cell.counterAxisAlignItems = 'CENTER';
+                cell.paddingLeft = 16;
+                cell.paddingRight = 16;
+                cell.paddingTop = 12;
+                cell.paddingBottom = 12;
+                cell.layoutGrow = 1;
+                cell.fills = [];
+                const text = figma.createText();
+                text.characters = value;
+                text.fontSize = 14;
+                text.fontName = { family: 'Inter', style: 'Regular' };
+                const fgVar = findVariable('foreground');
+                if (fgVar) {
+                    text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+                }
+                cell.appendChild(text);
+                dataRow.appendChild(cell);
+            }
+            frame.appendChild(headerRow);
+            frame.appendChild(dataRow);
+            page.appendChild(frame);
+            figma.createComponentFromNode(frame);
+        }
     });
 }
 figma.showUI(__html__, { width: 400, height: 500 });
@@ -828,9 +1638,14 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
             // Create pages
             const pageStructure = {
                 'Buttons': ['button'],
-                'Forms': ['input', 'textarea', 'checkbox'],
-                'Components': ['card', 'badge', 'alert'],
-                'Navigation': ['tabs'],
+                'Forms': ['input', 'textarea', 'checkbox', 'switch', 'slider', 'label', 'radio-group', 'select'],
+                'Components': ['card', 'badge', 'alert', 'avatar', 'separator', 'skeleton'],
+                'Navigation': ['tabs', 'breadcrumb', 'pagination'],
+                'Feedback': ['progress', 'spinner', 'tooltip'],
+                'Interactive': ['toggle'],
+                'Layout': ['accordion', 'collapsible'],
+                'Overlays': ['dialog', 'popover'],
+                'Data': ['table'],
             };
             let componentsCreated = 0;
             for (const pageName in pageStructure) {

@@ -153,12 +153,21 @@
     </div>
 
     <div class="divider"></div>
+
+    <h2>Component Generation</h2>
+    <p>Generate Shadcn components with auto-layout and variants.</p>
+    <div class="button-group">
+        <button id="generateComponentsBtn">Generate Components</button>
+    </div>
+
+    <div class="divider"></div>
     <div id="status"></div>
 
     <script>
         const generateBtn = document.getElementById('generateBtn');
         const toggleCustomBtn = document.getElementById('toggleCustomBtn');
         const generateCustomBtn = document.getElementById('generateCustomBtn');
+        const generateComponentsBtn = document.getElementById('generateComponentsBtn');
         const customSection = document.getElementById('customSection');
         const cssInput = document.getElementById('cssInput');
         const status = document.getElementById('status');
@@ -182,6 +191,10 @@
                 return;
             }
             parent.postMessage({ pluginMessage: { type: 'generate-variables', css, useDefault: false } }, '*');
+        };
+
+        generateComponentsBtn.onclick = () => {
+            parent.postMessage({ pluginMessage: { type: 'generate-components' } }, '*');
         };
 
         window.onmessage = (event) => {

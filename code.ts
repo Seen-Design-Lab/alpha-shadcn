@@ -330,6 +330,403 @@ async function createEffectStyles() {
   }
 }
 
+// Component Generation System
+async function generateComponent(
+  componentName: string,
+  page: PageNode,
+  findVariable: (name: string) => Variable | undefined,
+  colorCollection: VariableCollection
+) {
+  const lightModeId = colorCollection.modes.find(m => m.name === 'Light')?.modeId || colorCollection.modes[0].modeId;
+  const darkModeId = colorCollection.modes.find(m => m.name === 'Dark')?.modeId;
+
+  // Load fonts
+  await figma.loadFontAsync({ family: 'Inter', style: 'Medium' });
+  await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+
+  let xOffset = 0;
+
+  if (componentName === 'button') {
+    const variants = [
+      { name: 'default', bg: 'primary', fg: 'primary-foreground' },
+      { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground' },
+      { name: 'outline', bg: null, fg: 'primary', border: 'input' },
+      { name: 'secondary', bg: 'secondary', fg: 'secondary-foreground' },
+      { name: 'ghost', bg: null, fg: 'primary' },
+    ];
+
+    for (const variant of variants) {
+      const frame = figma.createFrame();
+      frame.name = `Button/${variant.name}`;
+      frame.layoutMode = 'HORIZONTAL';
+      frame.primaryAxisAlignItems = 'CENTER';
+      frame.counterAxisAlignItems = 'CENTER';
+      frame.paddingLeft = 16;
+      frame.paddingRight = 16;
+      frame.paddingTop = 8;
+      frame.paddingBottom = 8;
+      frame.itemSpacing = 8;
+      frame.cornerRadius = 6;
+      frame.x = xOffset;
+      frame.y = 50;
+
+      // Background
+      if (variant.bg) {
+        const bgVar = findVariable(variant.bg);
+        if (bgVar) {
+          frame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+        }
+      } else {
+        frame.fills = [];
+      }
+
+      // Border
+      if (variant.border) {
+        const borderVar = findVariable(variant.border);
+        if (borderVar) {
+          frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+          frame.strokeWeight = 1;
+        }
+      }
+
+      // Text
+      const text = figma.createText();
+      text.characters = 'Button';
+      text.fontSize = 14;
+      text.fontName = { family: 'Inter', style: 'Medium' };
+
+      const fgVar = findVariable(variant.fg);
+      if (fgVar) {
+        text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+
+      frame.appendChild(text);
+      page.appendChild(frame);
+
+      const component = figma.createComponentFromNode(frame);
+      component.x = xOffset;
+      xOffset += 150;
+    }
+  }
+
+  else if (componentName === 'input') {
+    const frame = figma.createFrame();
+    frame.name = 'Input';
+    frame.layoutMode = 'HORIZONTAL';
+    frame.primaryAxisAlignItems = 'CENTER';
+    frame.paddingLeft = 12;
+    frame.paddingRight = 12;
+    frame.paddingTop = 8;
+    frame.paddingBottom = 8;
+    frame.cornerRadius = 6;
+    frame.x = 50;
+    frame.y = 50;
+    frame.resize(280, 40);
+
+    // Background
+    const bgVar = findVariable('background');
+    if (bgVar) {
+      frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+    }
+
+    // Border
+    const borderVar = findVariable('input');
+    if (borderVar) {
+      frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+      frame.strokeWeight = 1;
+    }
+
+    // Placeholder text
+    const text = figma.createText();
+    text.characters = 'Email';
+    text.fontSize = 14;
+    text.fontName = { family: 'Inter', style: 'Regular' };
+
+    const mutedVar = findVariable('muted-foreground');
+    if (mutedVar) {
+      text.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+    }
+
+    frame.appendChild(text);
+    page.appendChild(frame);
+    figma.createComponentFromNode(frame);
+  }
+
+  else if (componentName === 'card') {
+    const frame = figma.createFrame();
+    frame.name = 'Card';
+    frame.layoutMode = 'VERTICAL';
+    frame.primaryAxisSizingMode = 'AUTO';
+    frame.counterAxisSizingMode = 'AUTO';
+    frame.paddingLeft = 24;
+    frame.paddingRight = 24;
+    frame.paddingTop = 24;
+    frame.paddingBottom = 24;
+    frame.itemSpacing = 16;
+    frame.cornerRadius = 8;
+    frame.x = 50;
+    frame.y = 50;
+
+    // Background
+    const cardVar = findVariable('card');
+    if (cardVar) {
+      frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: cardVar.id } } }];
+    }
+
+    // Border
+    const borderVar = findVariable('border');
+    if (borderVar) {
+      frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+      frame.strokeWeight = 1;
+    }
+
+    // Title
+    const title = figma.createText();
+    title.characters = 'Card Title';
+    title.fontSize = 20;
+    title.fontName = { family: 'Inter', style: 'Medium' };
+
+    const fgVar = findVariable('card-foreground');
+    if (fgVar) {
+      title.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+    }
+
+    // Description
+    const desc = figma.createText();
+    desc.characters = 'Card description goes here';
+    desc.fontSize = 14;
+    desc.fontName = { family: 'Inter', style: 'Regular' };
+
+    const mutedVar = findVariable('muted-foreground');
+    if (mutedVar) {
+      desc.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+    }
+
+    frame.appendChild(title);
+    frame.appendChild(desc);
+    page.appendChild(frame);
+    figma.createComponentFromNode(frame);
+  }
+
+  else if (componentName === 'badge') {
+    const variants = [
+      { name: 'default', bg: 'primary', fg: 'primary-foreground' },
+      { name: 'secondary', bg: 'secondary', fg: 'secondary-foreground' },
+      { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground' },
+      { name: 'outline', bg: null, fg: 'foreground', border: 'border' },
+    ];
+
+    for (const variant of variants) {
+      const frame = figma.createFrame();
+      frame.name = `Badge/${variant.name}`;
+      frame.layoutMode = 'HORIZONTAL';
+      frame.primaryAxisAlignItems = 'CENTER';
+      frame.counterAxisAlignItems = 'CENTER';
+      frame.primaryAxisSizingMode = 'AUTO';
+      frame.paddingLeft = 10;
+      frame.paddingRight = 10;
+      frame.paddingTop = 2;
+      frame.paddingBottom = 2;
+      frame.cornerRadius = 9999;
+      frame.x = xOffset;
+      frame.y = 50;
+
+      if (variant.bg) {
+        const bgVar = findVariable(variant.bg);
+        if (bgVar) {
+          frame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+        }
+      } else {
+        frame.fills = [];
+      }
+
+      if (variant.border) {
+        const borderVar = findVariable(variant.border);
+        if (borderVar) {
+          frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+          frame.strokeWeight = 1;
+        }
+      }
+
+      const text = figma.createText();
+      text.characters = 'Badge';
+      text.fontSize = 12;
+      text.fontName = { family: 'Inter', style: 'Medium' };
+
+      const fgVar = findVariable(variant.fg);
+      if (fgVar) {
+        text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+
+      frame.appendChild(text);
+      page.appendChild(frame);
+      figma.createComponentFromNode(frame);
+      xOffset += 120;
+    }
+  }
+
+  else if (componentName === 'alert') {
+    const variants = [
+      { name: 'default', bg: 'background', fg: 'foreground', border: 'border' },
+      { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground', border: 'destructive' },
+    ];
+
+    for (const variant of variants) {
+      const frame = figma.createFrame();
+      frame.name = `Alert/${variant.name}`;
+      frame.layoutMode = 'VERTICAL';
+      frame.primaryAxisSizingMode = 'AUTO';
+      frame.paddingLeft = 16;
+      frame.paddingRight = 16;
+      frame.paddingTop = 16;
+      frame.paddingBottom = 16;
+      frame.itemSpacing = 8;
+      frame.cornerRadius = 8;
+      frame.x = xOffset;
+      frame.y = 50;
+      frame.resize(400, 80);
+
+      const bgVar = findVariable(variant.bg);
+      if (bgVar) {
+        frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+      }
+
+      const borderVar = findVariable(variant.border);
+      if (borderVar) {
+        frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+        frame.strokeWeight = 1;
+      }
+
+      const title = figma.createText();
+      title.characters = 'Alert Title';
+      title.fontSize = 14;
+      title.fontName = { family: 'Inter', style: 'Medium' };
+
+      const fgVar = findVariable(variant.fg);
+      if (fgVar) {
+        title.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+
+      const desc = figma.createText();
+      desc.characters = 'Alert description';
+      desc.fontSize = 14;
+      desc.fontName = { family: 'Inter', style: 'Regular' };
+      if (fgVar) {
+        desc.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+
+      frame.appendChild(title);
+      frame.appendChild(desc);
+      page.appendChild(frame);
+      figma.createComponentFromNode(frame);
+      xOffset += 450;
+    }
+  }
+
+  else if (componentName === 'textarea') {
+    const frame = figma.createFrame();
+    frame.name = 'Textarea';
+    frame.layoutMode = 'VERTICAL';
+    frame.primaryAxisAlignItems = 'MIN';
+    frame.paddingLeft = 12;
+    frame.paddingRight = 12;
+    frame.paddingTop = 8;
+    frame.paddingBottom = 8;
+    frame.cornerRadius = 6;
+    frame.x = 50;
+    frame.y = 120;
+    frame.resize(280, 100);
+
+    const bgVar = findVariable('background');
+    if (bgVar) {
+      frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+    }
+
+    const borderVar = findVariable('input');
+    if (borderVar) {
+      frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+      frame.strokeWeight = 1;
+    }
+
+    const text = figma.createText();
+    text.characters = 'Your message...';
+    text.fontSize = 14;
+    text.fontName = { family: 'Inter', style: 'Regular' };
+
+    const mutedVar = findVariable('muted-foreground');
+    if (mutedVar) {
+      text.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: mutedVar.id } } }];
+    }
+
+    frame.appendChild(text);
+    page.appendChild(frame);
+    figma.createComponentFromNode(frame);
+  }
+
+  else if (componentName === 'checkbox') {
+    const frame = figma.createFrame();
+    frame.name = 'Checkbox';
+    frame.resize(16, 16);
+    frame.cornerRadius = 3;
+    frame.x = 50;
+    frame.y = 250;
+
+    const bgVar = findVariable('background');
+    if (bgVar) {
+      frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+    }
+
+    const borderVar = findVariable('primary');
+    if (borderVar) {
+      frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+      frame.strokeWeight = 2;
+    }
+
+    page.appendChild(frame);
+    figma.createComponentFromNode(frame);
+  }
+
+  else if (componentName === 'tabs') {
+    const frame = figma.createFrame();
+    frame.name = 'Tabs';
+    frame.layoutMode = 'HORIZONTAL';
+    frame.itemSpacing = 8;
+    frame.primaryAxisSizingMode = 'AUTO';
+    frame.x = 50;
+    frame.y = 50;
+
+    const tabs = ['Account', 'Password', 'Settings'];
+    for (const tabName of tabs) {
+      const tab = figma.createFrame();
+      tab.name = tabName;
+      tab.layoutMode = 'HORIZONTAL';
+      tab.primaryAxisAlignItems = 'CENTER';
+      tab.counterAxisAlignItems = 'CENTER';
+      tab.paddingLeft = 12;
+      tab.paddingRight = 12;
+      tab.paddingTop = 6;
+      tab.paddingBottom = 6;
+      tab.fills = [];
+
+      const text = figma.createText();
+      text.characters = tabName;
+      text.fontSize = 14;
+      text.fontName = { family: 'Inter', style: 'Medium' };
+
+      const fgVar = findVariable('foreground');
+      if (fgVar) {
+        text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+
+      tab.appendChild(text);
+      frame.appendChild(tab);
+    }
+
+    page.appendChild(frame);
+    figma.createComponentFromNode(frame);
+  }
+}
+
 figma.showUI(__html__, { width: 400, height: 500 });
 
 figma.ui.onmessage = async (msg) => {
@@ -427,6 +824,78 @@ figma.ui.onmessage = async (msg) => {
       figma.ui.postMessage({
         type: 'status',
         message: `✓ Generated ${colorCount} color variables, ${numberCount} number variables, 11 text styles, and 5 effect styles from ${source}!`,
+        status: 'success'
+      });
+
+    } catch (e: any) {
+      console.error(e);
+      figma.ui.postMessage({ type: 'status', message: 'Error: ' + e.message, status: 'error' });
+    }
+  }
+
+  if (msg.type === 'generate-components') {
+    try {
+      figma.ui.postMessage({ type: 'status', message: 'Generating components...', status: 'info' });
+
+      // Get variable collections for binding
+      const collections = await figma.variables.getLocalVariableCollectionsAsync();
+      const colorCollection = collections.find(c => c.name === 'shadcn/colors');
+      const numberCollection = collections.find(c => c.name === 'shadcn/numbers');
+
+      if (!colorCollection) {
+        figma.ui.postMessage({
+          type: 'status',
+          message: 'Please generate variables first!',
+          status: 'error'
+        });
+        return;
+      }
+
+      // Get all variables
+      const allVariables = await figma.variables.getLocalVariablesAsync();
+      const colorVars = allVariables.filter(v => v.variableCollectionId === colorCollection.id);
+      const numberVars = numberCollection ? allVariables.filter(v => v.variableCollectionId === numberCollection.id) : [];
+
+      // Helper to find variable by name
+      const findVariable = (name: string) => {
+        return colorVars.find(v => v.name === name) || numberVars.find(v => v.name === name);
+      };
+
+      // Create pages
+      const pageStructure: Record<string, string[]> = {
+        'Buttons': ['button'],
+        'Forms': ['input', 'textarea', 'checkbox'],
+        'Components': ['card', 'badge', 'alert'],
+        'Navigation': ['tabs'],
+      };
+
+      let componentsCreated = 0;
+
+      for (const pageName in pageStructure) {
+        const componentNames = pageStructure[pageName];
+
+        // Create or find page
+        let page = figma.root.children.find(p => p.name === `📦 ${pageName}`) as PageNode;
+        if (!page) {
+          page = figma.createPage();
+          page.name = `📦 ${pageName}`;
+        }
+
+        // Load page before appending components (required for dynamic-page mode)
+        await page.loadAsync();
+
+        // Generate components on this page
+        for (const componentName of componentNames) {
+          await generateComponent(componentName, page, findVariable, colorCollection);
+          componentsCreated++;
+        }
+      }
+
+      const pageCount = Object.keys(pageStructure).length;
+
+      figma.ui.postMessage({
+        type: 'status',
+        message: `✓ Generated ${componentsCreated} components across ${pageCount} pages!`,
         status: 'success'
       });
 

@@ -347,65 +347,113 @@ async function generateComponent(
   let xOffset = 0;
 
   if (componentName === 'button') {
-    const variants = [
-      { name: 'default', bg: 'primary', fg: 'primary-foreground' },
-      { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground' },
-      { name: 'outline', bg: null, fg: 'primary', border: 'input' },
-      { name: 'secondary', bg: 'secondary', fg: 'secondary-foreground' },
-      { name: 'ghost', bg: null, fg: 'primary' },
+    // Shadcn button specifications based on Tailwind classes
+    // h-9 = 36px, h-10 = 40px, h-11 = 44px
+    // px-3 = 12px, px-4 = 16px, px-8 = 32px
+    // text-sm = 14px, text-base = 16px
+
+    const sizes = [
+      { name: 'sm', height: 36, paddingX: 12, fontSize: 14, text: 'Small' },
+      { name: 'default', height: 40, paddingX: 16, fontSize: 14, text: 'Button' },
+      { name: 'lg', height: 44, paddingX: 32, fontSize: 16, text: 'Large' },
     ];
 
-    for (const variant of variants) {
-      const frame = figma.createFrame();
-      frame.name = `Button/${variant.name}`;
-      frame.layoutMode = 'HORIZONTAL';
-      frame.primaryAxisAlignItems = 'CENTER';
-      frame.counterAxisAlignItems = 'CENTER';
-      frame.paddingLeft = 16;
-      frame.paddingRight = 16;
-      frame.paddingTop = 8;
-      frame.paddingBottom = 8;
-      frame.itemSpacing = 8;
-      frame.cornerRadius = 6;
-      frame.x = xOffset;
-      frame.y = 50;
+    const variants = [
+      { name: 'default', bg: 'primary', fg: 'primary-foreground', border: null },
+      { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground', border: null },
+      { name: 'outline', bg: null, fg: 'foreground', border: 'input' },
+      { name: 'secondary', bg: 'secondary', fg: 'secondary-foreground', border: null },
+      { name: 'ghost', bg: null, fg: 'foreground', border: null },
+      { name: 'link', bg: null, fg: 'primary', border: null, underline: true },
+    ];
 
-      // Background
-      if (variant.bg) {
-        const bgVar = findVariable(variant.bg);
-        if (bgVar) {
-          frame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+    // Create component set frames for each size
+    let yOffset = 50;
+
+    for (const size of sizes) {
+      const componentSetFrame = figma.createFrame();
+      componentSetFrame.name = `Button/${size.name}`;
+      componentSetFrame.layoutMode = 'HORIZONTAL';
+      componentSetFrame.itemSpacing = 16;
+      componentSetFrame.x = 50;
+      componentSetFrame.y = yOffset;
+      componentSetFrame.fills = [];
+
+      const componentsInSet: ComponentNode[] = [];
+
+      for (const variant of variants) {
+        const frame = figma.createFrame();
+        frame.name = `variant=${variant.name}`;
+        frame.layoutMode = 'HORIZONTAL';
+        frame.primaryAxisAlignItems = 'CENTER';
+        frame.counterAxisAlignItems = 'CENTER';
+        frame.primaryAxisSizingMode = 'AUTO';
+        frame.counterAxisSizingMode = 'FIXED';
+        frame.paddingLeft = size.paddingX;
+        frame.paddingRight = size.paddingX;
+        frame.paddingTop = 0;
+        frame.paddingBottom = 0;
+        frame.itemSpacing = 8;
+        frame.cornerRadius = 6;
+        frame.resize(100, size.height);
+
+        // Background
+        if (variant.bg) {
+          const bgVar = findVariable(variant.bg);
+          if (bgVar) {
+            frame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+          }
+        } else {
+          frame.fills = [];
         }
-      } else {
-        frame.fills = [];
-      }
 
-      // Border
-      if (variant.border) {
-        const borderVar = findVariable(variant.border);
-        if (borderVar) {
-          frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
-          frame.strokeWeight = 1;
+        // Border
+        if (variant.border) {
+          const borderVar = findVariable(variant.border);
+          if (borderVar) {
+            frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+            frame.strokeWeight = 1;
+          }
         }
+
+        // Text
+        const text = figma.createText();
+        text.characters = size.text;
+        text.fontSize = size.fontSize;
+        text.fontName = { family: 'Inter', style: 'Medium' };
+        text.textAlignHorizontal = 'CENTER';
+        text.textAlignVertical = 'CENTER';
+
+        // Underline for link variant
+        if (variant.underline) {
+          text.textDecoration = 'UNDERLINE';
+        }
+
+        const fgVar = findVariable(variant.fg);
+        if (fgVar) {
+          text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+        }
+
+        frame.appendChild(text);
+        componentSetFrame.appendChild(frame);
       }
 
-      // Text
-      const text = figma.createText();
-      text.characters = 'Button';
-      text.fontSize = 14;
-      text.fontName = { family: 'Inter', style: 'Medium' };
+      page.appendChild(componentSetFrame);
 
-      const fgVar = findVariable(variant.fg);
-      if (fgVar) {
-        text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      // Convert each frame to a component first
+      const components: ComponentNode[] = [];
+      for (const child of componentSetFrame.children) {
+        const component = figma.createComponentFromNode(child as FrameNode);
+        components.push(component);
       }
 
-      frame.appendChild(text);
-      page.appendChild(frame);
+      // Convert to component set
+      const componentSet = figma.combineAsVariants(components, componentSetFrame);
+      componentSet.name = `Button/${size.name}`;
+      componentSet.x = 50;
+      componentSet.y = yOffset;
 
-      const component = figma.createComponentFromNode(frame);
-      component.x = xOffset;
-      xOffset += 150;
+      yOffset += 100;
     }
   }
 
@@ -510,26 +558,33 @@ async function generateComponent(
 
   else if (componentName === 'badge') {
     const variants = [
-      { name: 'default', bg: 'primary', fg: 'primary-foreground' },
-      { name: 'secondary', bg: 'secondary', fg: 'secondary-foreground' },
-      { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground' },
+      { name: 'default', bg: 'primary', fg: 'primary-foreground', border: null },
+      { name: 'secondary', bg: 'secondary', fg: 'secondary-foreground', border: null },
+      { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground', border: null },
       { name: 'outline', bg: null, fg: 'foreground', border: 'border' },
     ];
 
+    const componentSetFrame = figma.createFrame();
+    componentSetFrame.name = 'Badge';
+    componentSetFrame.layoutMode = 'HORIZONTAL';
+    componentSetFrame.itemSpacing = 16;
+    componentSetFrame.x = 50;
+    componentSetFrame.y = 50;
+    componentSetFrame.fills = [];
+
     for (const variant of variants) {
       const frame = figma.createFrame();
-      frame.name = `Badge/${variant.name}`;
+      frame.name = `variant=${variant.name}`;
       frame.layoutMode = 'HORIZONTAL';
       frame.primaryAxisAlignItems = 'CENTER';
       frame.counterAxisAlignItems = 'CENTER';
       frame.primaryAxisSizingMode = 'AUTO';
+      frame.counterAxisSizingMode = 'AUTO';
       frame.paddingLeft = 10;
       frame.paddingRight = 10;
       frame.paddingTop = 2;
       frame.paddingBottom = 2;
       frame.cornerRadius = 9999;
-      frame.x = xOffset;
-      frame.y = 50;
 
       if (variant.bg) {
         const bgVar = findVariable(variant.bg);
@@ -559,10 +614,22 @@ async function generateComponent(
       }
 
       frame.appendChild(text);
-      page.appendChild(frame);
-      figma.createComponentFromNode(frame);
-      xOffset += 120;
+      componentSetFrame.appendChild(frame);
     }
+
+    page.appendChild(componentSetFrame);
+
+    // Convert to component set
+    const components: ComponentNode[] = [];
+    for (const child of componentSetFrame.children) {
+      const component = figma.createComponentFromNode(child as FrameNode);
+      components.push(component);
+    }
+
+    const componentSet = figma.combineAsVariants(components, componentSetFrame);
+    componentSet.name = 'Badge';
+    componentSet.x = 50;
+    componentSet.y = 50;
   }
 
   else if (componentName === 'alert') {
@@ -571,19 +638,26 @@ async function generateComponent(
       { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground', border: 'destructive' },
     ];
 
+    const componentSetFrame = figma.createFrame();
+    componentSetFrame.name = 'Alert';
+    componentSetFrame.layoutMode = 'VERTICAL';
+    componentSetFrame.itemSpacing = 16;
+    componentSetFrame.x = 50;
+    componentSetFrame.y = 50;
+    componentSetFrame.fills = [];
+
     for (const variant of variants) {
       const frame = figma.createFrame();
-      frame.name = `Alert/${variant.name}`;
+      frame.name = `variant=${variant.name}`;
       frame.layoutMode = 'VERTICAL';
-      frame.primaryAxisSizingMode = 'AUTO';
+      frame.primaryAxisSizingMode = 'FIXED';
+      frame.counterAxisSizingMode = 'AUTO';
       frame.paddingLeft = 16;
       frame.paddingRight = 16;
       frame.paddingTop = 16;
       frame.paddingBottom = 16;
       frame.itemSpacing = 8;
       frame.cornerRadius = 8;
-      frame.x = xOffset;
-      frame.y = 50;
       frame.resize(400, 80);
 
       const bgVar = findVariable(variant.bg);
@@ -617,10 +691,22 @@ async function generateComponent(
 
       frame.appendChild(title);
       frame.appendChild(desc);
-      page.appendChild(frame);
-      figma.createComponentFromNode(frame);
-      xOffset += 450;
+      componentSetFrame.appendChild(frame);
     }
+
+    page.appendChild(componentSetFrame);
+
+    // Convert to component set
+    const components: ComponentNode[] = [];
+    for (const child of componentSetFrame.children) {
+      const component = figma.createComponentFromNode(child as FrameNode);
+      components.push(component);
+    }
+
+    const componentSet = figma.combineAsVariants(components, componentSetFrame);
+    componentSet.name = 'Alert';
+    componentSet.x = 50;
+    componentSet.y = 50;
   }
 
   else if (componentName === 'textarea') {
@@ -634,7 +720,7 @@ async function generateComponent(
     frame.paddingBottom = 8;
     frame.cornerRadius = 6;
     frame.x = 50;
-    frame.y = 120;
+    frame.y = 150;  // Positioned below Input
     frame.resize(280, 100);
 
     const bgVar = findVariable('background');
@@ -669,7 +755,7 @@ async function generateComponent(
     frame.resize(16, 16);
     frame.cornerRadius = 3;
     frame.x = 50;
-    frame.y = 250;
+    frame.y = 280;  // Positioned below Textarea
 
     const bgVar = findVariable('background');
     if (bgVar) {

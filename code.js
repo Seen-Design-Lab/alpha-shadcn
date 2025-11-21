@@ -8,6 +8,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+// Helper to convert OKLCH to RGB
+function oklchToRgb(l, c, h) {
+    // OKLCH to OKLab
+    const hRad = (h * Math.PI) / 180;
+    const a = c * Math.cos(hRad);
+    const b = c * Math.sin(hRad);
+    // OKLab to Linear RGB
+    const l_ = l + 0.3963377774 * a + 0.2158037573 * b;
+    const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
+    const s_ = l - 0.0894841775 * a - 1.2914855480 * b;
+    const l3 = l_ * l_ * l_;
+    const m3 = m_ * m_ * m_;
+    const s3 = s_ * s_ * s_;
+    const r_linear = +4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
+    const g_linear = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
+    const b_linear = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3;
+    // Linear RGB to sRGB (gamma correction)
+    const toSrgb = (c) => {
+        const abs = Math.abs(c);
+        if (abs <= 0.0031308)
+            return c * 12.92;
+        return (Math.sign(c) || 1) * (1.055 * Math.pow(abs, 1 / 2.4) - 0.055);
+    };
+    return {
+        r: Math.max(0, Math.min(1, toSrgb(r_linear))),
+        g: Math.max(0, Math.min(1, toSrgb(g_linear))),
+        b: Math.max(0, Math.min(1, toSrgb(b_linear)))
+    };
+}
+// Helper to parse OKLCH string "0.145 0 0" or "0.577 0.245 27.325" or "1 0 0 / 10%"
+function parseOklch(value) {
+    // Match OKLCH format: L C H or L C H / A%
+    const parts = value.match(/([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+)%?)?/);
+    if (parts && parts.length >= 4) {
+        const l = parseFloat(parts[1]);
+        const c = parseFloat(parts[2]);
+        const h = parseFloat(parts[3]);
+        const alpha = parts[4] ? parseFloat(parts[4]) / 100 : undefined;
+        const rgb = oklchToRgb(l, c, h);
+        return alpha !== undefined ? Object.assign(Object.assign({}, rgb), { a: alpha }) : rgb;
+    }
+    return null;
+}
 // Helper to convert HSL string to RGB
 function hslToRgb(h, s, l) {
     s /= 100;
@@ -54,8 +97,18 @@ function parseBlock(css, blockName) {
     let varMatch;
     while ((varMatch = varRegex.exec(content)) !== null) {
         const name = varMatch[1];
-        const value = varMatch[2].trim();
-        // Determine type
+        let value = varMatch[2].trim();
+        // Remove oklch() wrapper if present
+        if (value.startsWith('oklch(') && value.endsWith(')')) {
+            value = value.slice(6, -1);
+        }
+        // Try OKLCH first (modern shadcn format)
+        const oklch = parseOklch(value);
+        if (oklch) {
+            tokens[name] = { name, value, type: 'COLOR', parsedValue: oklch };
+            continue;
+        }
+        // Try HSL (legacy shadcn format)
         const rgb = parseHsl(value);
         if (rgb) {
             tokens[name] = { name, value, type: 'COLOR', parsedValue: rgb };

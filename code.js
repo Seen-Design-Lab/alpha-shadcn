@@ -8,6 +8,79 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+// Default Shadcn UI tokens (latest OKLCH format)
+const DEFAULT_SHADCN_CSS = `
+:root {
+  --radius: 0.625rem;
+  --background: 1 0 0;
+  --foreground: 0.145 0 0;
+  --card: 1 0 0;
+  --card-foreground: 0.145 0 0;
+  --popover: 1 0 0;
+  --popover-foreground: 0.145 0 0;
+  --primary: 0.205 0 0;
+  --primary-foreground: 0.985 0 0;
+  --secondary: 0.97 0 0;
+  --secondary-foreground: 0.205 0 0;
+  --muted: 0.97 0 0;
+  --muted-foreground: 0.556 0 0;
+  --accent: 0.97 0 0;
+  --accent-foreground: 0.205 0 0;
+  --destructive: 0.577 0.245 27.325;
+  --destructive-foreground: 0.985 0 0;
+  --border: 0.922 0 0;
+  --input: 0.922 0 0;
+  --ring: 0.708 0 0;
+  --chart-1: 0.646 0.222 41.116;
+  --chart-2: 0.6 0.118 184.704;
+  --chart-3: 0.398 0.07 227.392;
+  --chart-4: 0.828 0.189 84.429;
+  --chart-5: 0.769 0.188 70.08;
+  --sidebar: 0.985 0 0;
+  --sidebar-foreground: 0.145 0 0;
+  --sidebar-primary: 0.205 0 0;
+  --sidebar-primary-foreground: 0.985 0 0;
+  --sidebar-accent: 0.97 0 0;
+  --sidebar-accent-foreground: 0.205 0 0;
+  --sidebar-border: 0.922 0 0;
+  --sidebar-ring: 0.708 0 0;
+}
+
+.dark {
+  --background: 0.145 0 0;
+  --foreground: 0.985 0 0;
+  --card: 0.205 0 0;
+  --card-foreground: 0.985 0 0;
+  --popover: 0.269 0 0;
+  --popover-foreground: 0.985 0 0;
+  --primary: 0.922 0 0;
+  --primary-foreground: 0.205 0 0;
+  --secondary: 0.269 0 0;
+  --secondary-foreground: 0.985 0 0;
+  --muted: 0.269 0 0;
+  --muted-foreground: 0.708 0 0;
+  --accent: 0.371 0 0;
+  --accent-foreground: 0.985 0 0;
+  --destructive: 0.704 0.191 22.216;
+  --destructive-foreground: 0.985 0 0;
+  --border: 1 0 0 / 10%;
+  --input: 1 0 0 / 15%;
+  --ring: 0.556 0 0;
+  --chart-1: 0.488 0.243 264.376;
+  --chart-2: 0.696 0.17 162.48;
+  --chart-3: 0.769 0.188 70.08;
+  --chart-4: 0.627 0.265 303.9;
+  --chart-5: 0.645 0.246 16.439;
+  --sidebar: 0.205 0 0;
+  --sidebar-foreground: 0.985 0 0;
+  --sidebar-primary: 0.488 0.243 264.376;
+  --sidebar-primary-foreground: 0.985 0 0;
+  --sidebar-accent: 0.269 0 0;
+  --sidebar-accent-foreground: 0.985 0 0;
+  --sidebar-border: 1 0 0 / 10%;
+  --sidebar-ring: 0.439 0 0;
+}
+`;
 // Helper to convert OKLCH to RGB
 function oklchToRgb(l, c, h) {
     // OKLCH to OKLab
@@ -127,7 +200,8 @@ figma.showUI(__html__, { width: 400, height: 500 });
 figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
     if (msg.type === 'generate-variables') {
         try {
-            const css = msg.css;
+            // Use default tokens or custom CSS
+            const css = msg.useDefault ? DEFAULT_SHADCN_CSS : msg.css;
             const rootTokens = parseBlock(css, ':root');
             const darkTokens = parseBlock(css, '.dark');
             if (Object.keys(rootTokens).length === 0) {
@@ -135,7 +209,7 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
                 return;
             }
             // Create Collection
-            const collections = figma.variables.getLocalVariableCollections();
+            const collections = yield figma.variables.getLocalVariableCollectionsAsync();
             let collection = collections.find(c => c.name === 'shadcn');
             if (!collection) {
                 collection = figma.variables.createVariableCollection('shadcn');
@@ -164,12 +238,12 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
                 }
             }
             // Create Variables
-            const existingVars = figma.variables.getLocalVariables().filter(v => v.variableCollectionId === collection.id);
+            const existingVars = (yield figma.variables.getLocalVariablesAsync()).filter(v => v.variableCollectionId === collection.id);
             for (const name in rootTokens) {
                 const token = rootTokens[name];
                 let variable = existingVars.find(v => v.name === name);
                 if (!variable) {
-                    variable = figma.variables.createVariable(name, collection.id, token.type);
+                    variable = figma.variables.createVariable(name, collection, token.type);
                 }
                 // Update Light Mode
                 if (token.type === 'COLOR') {
@@ -191,7 +265,12 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
                     }
                 }
             }
-            figma.ui.postMessage({ type: 'status', message: `Successfully generated ${Object.keys(rootTokens).length} variables!`, status: 'success' });
+            const source = msg.useDefault ? 'default Shadcn tokens' : 'custom CSS';
+            figma.ui.postMessage({
+                type: 'status',
+                message: `Successfully generated ${Object.keys(rootTokens).length} variables from ${source}!`,
+                status: 'success'
+            });
         }
         catch (e) {
             console.error(e);

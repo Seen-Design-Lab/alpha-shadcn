@@ -1,2 +1,15 @@
-github: ['shadcn', 'foosel', 'tarsius', 'lpil', 'Vendicated', 'simonw', 'skydoves', 'johnsoncodehk', 'sindresorhus']
+github: [
+'shadcn',
+  'foosel',
+  'tarsius',
+  'lpil',
+  'Vendicated',
+  'simonw',
+  'skydoves',
+  'johnsoncodehk',
+  'sindresorhus',
+  'calebporzio',
+  'dtolnay',
+  'JakeWharton'
+]
 custom: ['https://seendesignlab.lemonsqueezy.com/']

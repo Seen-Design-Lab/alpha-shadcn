@@ -4,156 +4,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadcn Variables - Figma Plugin</title>
+    <title>WOW RAKIBUL — Shadcn/UI Generator</title>
     <meta name="description"
-        content="Auto-generate complete Shadcn design systems in Figma with one click. Colors, typography, spacing, and effect styles — instantly.">
+        content="Turn shadcn/ui into a full Figma system — variables, tokens, components, and clean structure without touching a single manual step.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <img src="logo.png" alt="WOW RAKIBUL Logo">
+                <span>WOW RAKIBUL</span>
+            </div>
+
+            <nav class="desktop-nav">
+                <a href="#features">Features</a>
+                <a href="#">Demo</a>
+                <a href="#">Docs</a>
+                <a href="#">Components</a>
+                <a href="#">Updates</a>
+                <a href="#">Support</a>
+            </nav>
+
+            <div class="header-actions">
+                <div class="social-icons">
+                    <a href="#" aria-label="X (Twitter)"><i class="ph ph-x-logo"></i></a>
+                    <a href="#" aria-label="GitHub"><i class="ph ph-github-logo"></i></a>
+                    <a href="#" aria-label="Discord"><i class="ph ph-discord-logo"></i></a>
+                </div>
+                <a href="#" class="btn btn-primary">Download Plugin</a>
+            </div>
+
+            <button class="mobile-menu-btn" aria-label="Open Menu">
+                <i class="ph ph-list"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer">
+        <div class="drawer-header">
+            <div class="logo">
+                <img src="logo.png" alt="WOW RAKIBUL Logo">
+                <span>WOW RAKIBUL</span>
+            </div>
+            <button class="close-menu-btn" aria-label="Close Menu">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <nav class="mobile-nav">
+            <a href="#features">Features</a>
+            <a href="#">Demo</a>
+            <a href="#">Docs</a>
+            <a href="#">Components</a>
+            <a href="#">Updates</a>
+            <a href="#">Support</a>
+        </nav>
+        <div class="drawer-footer">
+            <div class="social-icons">
+                <a href="#" aria-label="X (Twitter)"><i class="ph ph-x-logo"></i></a>
+                <a href="#" aria-label="GitHub"><i class="ph ph-github-logo"></i></a>
+                <a href="#" aria-label="Discord"><i class="ph ph-discord-logo"></i></a>
+            </div>
+            <a href="#" class="btn btn-primary full-width">Start Designing Faster</a>
+        </div>
+    </div>
+
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-content">
-            <h1>Auto-Generate Your Entire Shadcn Design System in Figma</h1>
-            <p class="subline">One click. Complete design tokens. Colors, typography, spacing, and effect styles —
-                instantly ready.</p>
-            <a href="https://github.com/Seen-Design-Lab/alpha-shadcn/archive/refs/heads/main.zip" class="cta-button">
-                <span>Download Plugin</span>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M10 13L5 8L6.4 6.55L9 9.15V2H11V9.15L13.6 6.55L15 8L10 13ZM4 18C3.45 18 2.979 17.804 2.587 17.412C2.195 17.02 1.99934 16.5493 2 16V13H4V16H16V13H18V16C18 16.55 17.804 17.021 17.412 17.413C17.02 17.805 16.5493 18.0007 16 18H4Z"
-                        fill="currentColor" />
-                </svg>
-            </a>
-            <p class="helper-note">Free • Open Source • Works with Figma's dynamic-page mode</p>
+        <div class="container hero-content">
+            <div class="hero-badge">Design Systems in One Click</div>
+            <h1>Turn shadcn/ui into a full Figma system — variables, tokens, components, and clean structure without
+                touching a single manual step.</h1>
+            <p class="hero-sub">This saves time, reduces noise, and unlocks a workflow that just feels fast.</p>
+
+            <div class="hero-ctas">
+                <a href="#" class="btn btn-primary">Download Plugin</a>
+                <a href="#" class="btn btn-secondary">View Demo File</a>
+            </div>
+
+            <p class="tiny-note">Built by Seen Design Lab. Crafted for the new era of designers.</p>
+        </div>
+    </section>
+
+    <!-- Why This Matters -->
+    <section class="why-matters">
+        <div class="container">
+            <div class="section-header">
+                <h2>WHY THIS MATTERS</h2>
+            </div>
+            <div class="grid-2-col">
+                <div class="problem">
+                    <h3>Design setups still waste too many hours.</h3>
+                    <p>Tokens here. Variables there. Components scattered everywhere like puzzle pieces.</p>
+                </div>
+                <div class="solution">
+                    <h3>Your plugin flips that story.</h3>
+                    <p>Open. Generate. Done.<br>
+                        A full design system appears instantly — organized, scalable, and ready for real product work.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features -->
+    <section id="features" class="core-features">
+        <div class="container">
+            <div class="section-header center">
+                <h2>CORE FEATURES</h2>
+                <h3>Everything Auto-Generated. Everything Clean.</h3>
+                <p>No vague promises. You get the real thing:</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="ph ph-check-circle"></i>
+                    <span>Tokens mapped and structured</span>
+                </div>
+                <div class="feature-item">
+                    <i class="ph ph-check-circle"></i>
+                    <span>Variables layered by mode and theme</span>
+                </div>
+                <div class="feature-item">
+                    <i class="ph ph-check-circle"></i>
+                    <span>Components with real-life scalability</span>
+                </div>
+                <div class="feature-item">
+                    <i class="ph ph-check-circle"></i>
+                    <span>Pages organized like a true design system</span>
+                </div>
+                <div class="feature-item">
+                    <i class="ph ph-check-circle"></i>
+                    <span>Consistent naming for dev-to-design flow</span>
+                </div>
+                <div class="feature-item">
+                    <i class="ph ph-check-circle"></i>
+                    <span>Zero clutter, zero confusion</span>
+                </div>
+                <div class="feature-item">
+                    <i class="ph ph-check-circle"></i>
+                    <span>Instant readiness for production teams</span>
+                </div>
+            </div>
+
+            <p class="feature-note">Feels like opening a preset universe built for speed.</p>
         </div>
     </section>
 
     <!-- How It Works -->
-    <section>
-        <h2>How It Works</h2>
-        <p class="section-description">Three simple steps to a complete design system</p>
-
-        <div class="steps">
-            <div class="step">
-                <div class="step-icon">📦</div>
-                <h3>Install</h3>
-                <p>Download the .figplug file and double-click to install in Figma</p>
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>HOW IT WORKS</h2>
             </div>
-
-            <div class="step">
-                <div class="step-icon">▶️</div>
-                <h3>Run in Figma</h3>
-                <p>Open the plugin from Figma's plugin menu</p>
+            <div class="steps-flow">
+                <div class="step">Open the plugin</div>
+                <div class="arrow">→</div>
+                <div class="step">Choose your setup</div>
+                <div class="arrow">→</div>
+                <div class="step">Hit Generate</div>
+                <div class="arrow">→</div>
+                <div class="step">Watch Figma transform</div>
             </div>
-
-            <div class="step">
-                <div class="step-icon">✨</div>
-                <h3>Generate</h3>
-                <p>Click "Generate Variables" and watch your design system appear</p>
+            <div class="steps-desc">
+                <h3>That’s it.</h3>
+                <p>No long docs, no complex inputs, no waiting.</p>
+                <p>Just a design system landing inside your file like it was always supposed to be there.</p>
             </div>
         </div>
     </section>
 
-    <!-- What It Generates -->
-    <section class="features">
-        <h2>What It Generates</h2>
-        <p class="section-description">Everything you need for a production-ready Shadcn design system</p>
-
-        <ul class="features-list">
-            <li>
-                <span class="feature-icon">🎨</span>
-                <span class="feature-text">Color variables with Light & Dark modes</span>
-            </li>
-            <li>
-                <span class="feature-icon">📏</span>
-                <span class="feature-text">Number & spacing tokens for consistent layouts</span>
-            </li>
-            <li>
-                <span class="feature-icon">✍️</span>
-                <span class="feature-text">Typography system from Shadcn (11 text styles)</span>
-            </li>
-            <li>
-                <span class="feature-icon">💫</span>
-                <span class="feature-text">Effect styles for shadows and elevation</span>
-            </li>
-            <li>
-                <span class="feature-icon">📐</span>
-                <span class="feature-text">Layout spacing system for grids and margins</span>
-            </li>
-            <li>
-                <span class="feature-icon">🗂️</span>
-                <span class="feature-text">Organized variable collections (colors, numbers)</span>
-            </li>
-        </ul>
+    <!-- For Who -->
+    <section class="for-who">
+        <div class="container">
+            <div class="section-header">
+                <h2>FOR WHO</h2>
+            </div>
+            <div class="who-grid">
+                <div class="who-card">
+                    <h3>Solo designers</h3>
+                    <p>who want less setup and more flow.</p>
+                </div>
+                <div class="who-card">
+                    <h3>Teams</h3>
+                    <p>that need a clean shared language.</p>
+                </div>
+                <div class="who-card">
+                    <h3>Developers</h3>
+                    <p>who want design files that actually match their components.</p>
+                </div>
+            </div>
+            <p class="who-note">If your workflow values speed, clarity, and consistency, this tool becomes a quiet
+                superpower.</p>
+        </div>
     </section>
 
-    <!-- About the Maker -->
-    <section class="about">
-        <h2>About the Maker</h2>
-        <div class="maker-info">
-            <p>Built by <a href="https://twitter.com/rakibulism" class="maker-name" target="_blank"
-                    rel="noopener">@rakibulism</a></p>
-            <p class="maker-title">Lead Product Designer & UX Psychologist</p>
-            <p style="margin-top: 1rem;">Designing future-forward digital experiences shaped by human behavior and
-                clarity.</p>
+    <!-- Trust & Story -->
+    <section class="trust-story">
+        <div class="container">
+            <div class="section-header">
+                <h2>TRUST & STORY</h2>
+            </div>
+            <div class="story-content">
+                <p>Designed by <strong>Seen Design Lab</strong>.</p>
+                <p>Built by <strong>Rakibul</strong> — a studio mindset, not a factory mindset.</p>
+                <p>Every detail reflects real product experience, the kind that matters in fast cycles and modern UI
+                    culture.</p>
+                <p class="story-tagline">Not hype. Just clean execution.</p>
+            </div>
         </div>
     </section>
 
     <!-- Final CTA -->
     <section class="final-cta">
-        <h2>Ready to streamline your design workflow?</h2>
-        <a href="https://github.com/Seen-Design-Lab/alpha-shadcn/archive/refs/heads/main.zip" class="cta-button">
-            <span>Download Plugin</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M10 13L5 8L6.4 6.55L9 9.15V2H11V9.15L13.6 6.55L15 8L10 13ZM4 18C3.45 18 2.979 17.804 2.587 17.412C2.195 17.02 1.99934 16.5493 2 16V13H4V16H16V13H18V16C18 16.55 17.804 17.021 17.412 17.413C17.02 17.805 16.5493 18.0007 16 18H4Z"
-                    fill="currentColor" />
-            </svg>
-        </a>
+        <div class="container">
+            <h2>Build Faster. Design Smarter. Start Now.</h2>
+            <p>Your shadcn/ui system is waiting inside one click.</p>
+            <div class="cta-buttons">
+                <a href="#" class="btn btn-primary">Download Plugin</a>
+                <a href="#" class="btn btn-outline">Star on GitHub</a>
+            </div>
+        </div>
     </section>
 
     <!-- Footer -->
     <footer>
-        <p>© 2025 Shadcn Variables Plugin. Open source and free to use.</p>
+        <div class="container">
+            <p>WOW RAKIBUL — Tools built for the next era of design systems.</p>
+        </div>
     </footer>
 
     <script>
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const closeMenuBtn = document.querySelector('.close-menu-btn');
+        const mobileDrawer = document.querySelector('.mobile-drawer');
+        const body = document.body;
+
+        function toggleMenu() {
+            mobileDrawer.classList.toggle('open');
+            body.classList.toggle('no-scroll');
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+        closeMenuBtn.addEventListener('click', toggleMenu);
+
+        // Close drawer when clicking a link
+        document.querySelectorAll('.mobile-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (mobileDrawer.classList.contains('open')) {
+                    toggleMenu();
                 }
             });
-        });
-
-        // Intersection Observer for fade-in animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        // Observe all sections except hero
-        document.querySelectorAll('section:not(.hero)').forEach(section => {
-            section.style.opacity = '0';
-            section.style.transform = 'translateY(30px)';
-            section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-            observer.observe(section);
         });
     </script>
 </body>

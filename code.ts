@@ -787,6 +787,103 @@ async function generateComponent(
     figma.createComponentFromNode(frame);
   }
 
+  else if (componentName === 'accordion') {
+    const variants = [
+      { name: 'closed-default', open: false, hover: false },
+      { name: 'closed-hover', open: false, hover: true },
+      { name: 'open-default', open: true, hover: false },
+      { name: 'open-hover', open: true, hover: true },
+    ];
+
+    const componentSetFrame = figma.createFrame();
+    componentSetFrame.name = 'Accordion';
+    componentSetFrame.layoutMode = 'VERTICAL';
+    componentSetFrame.itemSpacing = 20;
+    componentSetFrame.x = 50;
+    componentSetFrame.y = 50;
+    componentSetFrame.fills = [];
+
+    for (const variant of variants) {
+      const openStr = variant.open ? 'True' : 'False';
+      const hoverStr = variant.hover ? 'True' : 'False';
+      const frame = figma.createFrame();
+      frame.name = `Open=${openStr}, Hover=${hoverStr}`;
+      frame.layoutMode = 'VERTICAL';
+      frame.primaryAxisSizingMode = 'AUTO';
+      frame.counterAxisSizingMode = 'FIXED';
+      frame.resize(450, 100);
+      frame.paddingBottom = variant.open ? 16 : 0;
+
+      const borderVar = findVariable('border');
+      if (borderVar) {
+        frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+        frame.strokeWeight = 1;
+      }
+
+      const trigger = figma.createFrame();
+      trigger.layoutMode = 'HORIZONTAL';
+      trigger.primaryAxisAlignItems = 'SPACE_BETWEEN';
+      trigger.counterAxisAlignItems = 'CENTER';
+      trigger.layoutSizingHorizontal = 'FILL';
+      trigger.paddingTop = 16;
+      trigger.paddingBottom = 16;
+      trigger.fills = [];
+
+      const title = figma.createText();
+      title.characters = 'Is it accessible?';
+      title.fontSize = 16;
+      title.fontName = { family: 'Inter', style: 'Medium' };
+      if (variant.hover) {
+        title.textDecoration = 'UNDERLINE';
+      }
+      const fgVar = findVariable('foreground');
+      if (fgVar) {
+        title.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+      trigger.appendChild(title);
+
+      const icon = figma.createVector();
+      icon.vectorPaths = [{
+        windingRule: 'NONZERO',
+        data: 'M4 6L8 10L12 6'
+      }];
+      icon.strokeWeight = 2;
+      icon.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
+      if (fgVar) {
+        icon.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+      if (variant.open) {
+        icon.rotation = 180;
+      }
+      icon.resize(16, 16);
+      trigger.appendChild(icon);
+      frame.appendChild(trigger);
+
+      if (variant.open) {
+        const content = figma.createText();
+        content.characters = 'Yes. It adheres to the WAI-ARIA design pattern.';
+        content.fontSize = 14;
+        content.fontName = { family: 'Inter', style: 'Regular' };
+        if (fgVar) {
+          content.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+        }
+        frame.appendChild(content);
+      }
+
+      componentSetFrame.appendChild(frame);
+    }
+
+    page.appendChild(componentSetFrame);
+
+    const components: ComponentNode[] = [];
+    for (const child of componentSetFrame.children) {
+      const component = figma.createComponentFromNode(child as FrameNode);
+      components.push(component);
+    }
+    const componentSet = figma.combineAsVariants(components, componentSetFrame);
+    componentSet.name = 'Accordion';
+  }
+
   else if (componentName === 'tabs') {
     const frame = figma.createFrame();
     frame.name = 'Tabs';
@@ -798,6 +895,8 @@ async function generateComponent(
 
     const tabs = ['Account', 'Password', 'Settings'];
     for (const tabName of tabs) {
+
+
       const tab = figma.createFrame();
       tab.name = tabName;
       tab.layoutMode = 'HORIZONTAL';
@@ -3178,14 +3277,16 @@ figma.ui.onmessage = async (msg) => {
         '📦 Buttons': ['button', 'button-group'],
         '📦 Forms': ['input', 'textarea', 'checkbox', 'switch', 'slider', 'label', 'radio-group', 'select', 'native-select', 'combobox', 'date-picker', 'input-otp', 'field'],
         '📦 Components': ['card', 'badge', 'alert', 'alert-dialog', 'avatar', 'separator', 'skeleton', 'kbd', 'empty', 'item'],
+        '📦 Accordion': ['accordion'],
         '📦 Navigation': ['tabs', 'breadcrumb', 'pagination', 'menubar', 'navigation-menu'],
         '📦 Feedback': ['progress', 'spinner', 'tooltip', 'toast', 'sonner'],
         '📦 Interactive': ['toggle', 'toggle-group'],
-        '📦 Layout': ['accordion', 'collapsible', 'resizable', 'scroll-area', 'aspect-ratio', 'sidebar'],
+        '📦 Layout': ['collapsible', 'resizable', 'scroll-area', 'aspect-ratio', 'sidebar'],
         '📦 Overlays': ['dialog', 'popover', 'sheet', 'drawer', 'hover-card'],
         '📦 Menus': ['dropdown-menu', 'context-menu', 'command'],
         '📦 Data': ['table', 'calendar', 'chart', 'carousel'],
         '📦 Forms Advanced': ['form'],
+
       };
 
       let componentsCreated = 0;

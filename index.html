@@ -306,6 +306,28 @@
                 }
             });
         });
+
+        // Background Music Autoplay Handling
+        document.addEventListener('DOMContentLoaded', function () {
+            const audio = document.getElementById('bg-music');
+
+            // Try to play immediately
+            audio.play().catch(function (error) {
+                console.log("Autoplay was prevented. Waiting for user interaction.");
+
+                // If prevented, play on first interaction
+                const playOnInteraction = function () {
+                    audio.play();
+                    document.removeEventListener('click', playOnInteraction);
+                    document.removeEventListener('keydown', playOnInteraction);
+                    document.removeEventListener('touchstart', playOnInteraction);
+                };
+
+                document.addEventListener('click', playOnInteraction);
+                document.addEventListener('keydown', playOnInteraction);
+                document.addEventListener('touchstart', playOnInteraction);
+            });
+        });
     </script>
 </body>
 

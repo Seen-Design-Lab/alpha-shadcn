@@ -60,12 +60,9 @@
             </div>
 
             <nav class="desktop-nav">
-                <a href="#features">Features</a>
-                <a href="#">Demo</a>
-                <a href="#">Docs</a>
-                <a href="#">Components</a>
-                <a href="#">Updates</a>
-                <a href="#">Support</a>
+                <a href="docs/pricing.html">Pricing</a>
+                <a href="docs/updates.html">Updates</a>
+                <a href="https://hidocdoc.notion.site/2b487c46fce480e89bc4fa9bcfb3b0f9" target="_blank">Support</a>
             </nav>
 
             <div class="header-actions">
@@ -87,22 +84,11 @@
 
     <!-- Mobile Drawer -->
     <div class="mobile-drawer">
-        <div class="drawer-header">
-            <div class="logo">
-                <img src="assets/images/logo.png" alt="Alpha Shadcn Logo">
-                <span>Alpha Shadcn</span>
-            </div>
-            <button class="close-menu-btn" aria-label="Close Menu">
-                <i class="ph ph-x"></i>
-            </button>
-        </div>
+        <!-- Drawer Header Removed -->
         <nav class="mobile-nav">
-            <a href="#features">Features</a>
-            <a href="#">Demo</a>
-            <a href="#">Docs</a>
-            <a href="#">Components</a>
-            <a href="#">Updates</a>
-            <a href="#">Support</a>
+            <a href="docs/pricing.html">Pricing</a>
+            <a href="docs/updates.html">Updates</a>
+            <a href="https://hidocdoc.notion.site/2b487c46fce480e89bc4fa9bcfb3b0f9" target="_blank">Support</a>
         </nav>
         <div class="drawer-footer">
             <div class="social-icons">
@@ -162,49 +148,6 @@
         </div>
     </section>
 
-    <!-- Core Features -->
-    <section id="features" class="core-features">
-        <div class="container">
-            <div class="section-header center">
-                <h2>CORE FEATURES</h2>
-                <h3>Everything Auto-Generated. Everything Clean.</h3>
-                <p>No vague promises. You get the real thing:</p>
-            </div>
-
-            <div class="features-grid">
-                <div class="feature-item">
-                    <i class="ph ph-check-circle"></i>
-                    <span>Tokens mapped and structured</span>
-                </div>
-                <div class="feature-item">
-                    <i class="ph ph-check-circle"></i>
-                    <span>Variables layered by mode and theme</span>
-                </div>
-                <div class="feature-item">
-                    <i class="ph ph-check-circle"></i>
-                    <span>Components with real-life scalability</span>
-                </div>
-                <div class="feature-item">
-                    <i class="ph ph-check-circle"></i>
-                    <span>Pages organized like a true design system</span>
-                </div>
-                <div class="feature-item">
-                    <i class="ph ph-check-circle"></i>
-                    <span>Consistent naming for dev-to-design flow</span>
-                </div>
-                <div class="feature-item">
-                    <i class="ph ph-check-circle"></i>
-                    <span>Zero clutter, zero confusion</span>
-                </div>
-                <div class="feature-item">
-                    <i class="ph ph-check-circle"></i>
-                    <span>Instant readiness for production teams</span>
-                </div>
-            </div>
-
-            <p class="feature-note">Feels like opening a preset universe built for speed.</p>
-        </div>
-    </section>
 
     <!-- How It Works -->
     <section class="how-it-works">
@@ -293,17 +236,25 @@
     <script>
         // Mobile Menu Toggle
         const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-        const closeMenuBtn = document.querySelector('.close-menu-btn');
         const mobileDrawer = document.querySelector('.mobile-drawer');
         const body = document.body;
+        const menuIcon = mobileMenuBtn.querySelector('i');
 
         function toggleMenu() {
             mobileDrawer.classList.toggle('open');
             body.classList.toggle('no-scroll');
+
+            // Toggle Icon
+            if (mobileDrawer.classList.contains('open')) {
+                menuIcon.classList.remove('ph-list');
+                menuIcon.classList.add('ph-x');
+            } else {
+                menuIcon.classList.remove('ph-x');
+                menuIcon.classList.add('ph-list');
+            }
         }
 
         mobileMenuBtn.addEventListener('click', toggleMenu);
-        closeMenuBtn.addEventListener('click', toggleMenu);
 
         // Close drawer when clicking a link
         document.querySelectorAll('.mobile-nav a').forEach(link => {
@@ -330,9 +281,32 @@
                     document.removeEventListener('touchstart', playOnInteraction);
                 };
 
-                document.addEventListener('click', playOnInteraction);
-                document.addEventListener('keydown', playOnInteraction);
                 document.addEventListener('touchstart', playOnInteraction);
+            });
+        });
+
+        // Flying Heart Animation
+        document.querySelectorAll('nav a, .mobile-nav a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                const heart = document.createElement('div');
+                heart.innerHTML = '❤️';
+                heart.classList.add('flying-heart');
+
+                // Position the heart at the click coordinates
+                // Use touches if it's a touch event, otherwise use mouse coordinates
+                const x = e.clientX || (e.touches && e.touches[0].clientX);
+                const y = e.clientY || (e.touches && e.touches[0].clientY);
+
+                if (x && y) {
+                    heart.style.left = x + 'px';
+                    heart.style.top = y + 'px';
+                    document.body.appendChild(heart);
+
+                    // Remove the heart after animation completes
+                    setTimeout(() => {
+                        heart.remove();
+                    }, 1000);
+                }
             });
         });
     </script>

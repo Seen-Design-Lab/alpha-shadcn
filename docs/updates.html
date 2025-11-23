@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Shadcn - Updates</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <a href="../index.html" class="logo">
+                <img src="../assets/images/logo.png" alt="Alpha Shadcn logo">
+                <span>Alpha Shadcn</span>
+            </a>
+
+            <nav class="desktop-nav">
+                <a href="pricing.html">Pricing</a>
+                <a href="updates.html" style="color: var(--text-primary);">Updates</a>
+                <a href="https://hidocdoc.notion.site/2b487c46fce480e89bc4fa9bcfb3b0f9" target="_blank">Support</a>
+            </nav>
+
+            <div class="header-actions">
+                <div class="social-icons">
+                    <a href="https://x.com/seendesignlab" aria-label="X (Twitter)"><i class="ph ph-x-logo"></i></a>
+                    <a href="https://github.com/rakibulism/alpha-shadcn/" aria-label="GitHub"><i
+                            class="ph ph-github-logo"></i></a>
+                    <a href="#" aria-label="Discord"><i class="ph ph-discord-logo"></i></a>
+                </div>
+                <a href="https://github.com/rakibulism/alpha-shadcn/archive/refs/heads/main.zip"
+                    class="btn btn-primary">Download Plugin</a>
+            </div>
+
+            <button class="mobile-menu-btn" aria-label="Open Menu">
+                <i class="ph ph-list"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer">
+        <!-- Drawer Header Removed -->
+        <nav class="mobile-nav">
+            <a href="pricing.html">Pricing</a>
+            <a href="updates.html">Updates</a>
+            <a href="https://hidocdoc.notion.site/2b487c46fce480e89bc4fa9bcfb3b0f9" target="_blank">Support</a>
+        </nav>
+        <div class="drawer-footer">
+            <div class="social-icons">
+                <a href="https://x.com/seendesignlab" aria-label="X (Twitter)"><i class="ph ph-x-logo"></i></a>
+                <a href="https://github.com/rakibulism/alpha-shadcn/" aria-label="GitHub"><i
+                        class="ph ph-github-logo"></i></a>
+                <a href="#" aria-label="Discord"><i class="ph ph-discord-logo"></i></a>
+            </div>
+            <a href="https://github.com/rakibulism/alpha-shadcn/archive/refs/heads/main.zip"
+                class="btn btn-primary full-width">Start Designing Faster</a>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside>
+            <div class="nav-group">
+                <h4>Changelog</h4>
+                <ul>
+                    <li><a href="#v1-0-0" class="active">v1.0.0</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main>
+            <div class="breadcrumb">
+                <span>Updates</span>
+                <i class="ph ph-caret-right"></i>
+                <span>Changelog</span>
+            </div>
+
+            <h1 style="margin-bottom: 48px;">Changelog</h1>
+
+            <div id="v1-0-0" class="changelog-entry">
+                <div class="entry-header">
+                    <span class="version-badge">v1.0.0</span>
+                    <span class="entry-date">November 23, 2025</span>
+                </div>
+
+                <div class="entry-content">
+                    <h3>Initial Release</h3>
+                    <p>We are excited to announce the first release of Alpha Shadcn! This plugin is designed to
+                        streamline your design system workflow in Figma.</p>
+
+                    <h4>New Features</h4>
+                    <ul>
+                        <li><strong>Automated Variables:</strong> Generate full primitive and semantic variable
+                            collections instantly.</li>
+                        <li><strong>Component Sets:</strong> Create production-ready components that match shadcn/ui
+                            code.</li>
+                        <li><strong>Smart Layouts:</strong> All generated components come with Auto Layout baked in.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const mobileDrawer = document.querySelector('.mobile-drawer');
+        const body = document.body;
+        const menuIcon = mobileMenuBtn.querySelector('i');
+
+        function toggleMenu() {
+            mobileDrawer.classList.toggle('open');
+            body.classList.toggle('no-scroll');
+
+            // Toggle Icon
+            if (mobileDrawer.classList.contains('open')) {
+                menuIcon.classList.remove('ph-list');
+                menuIcon.classList.add('ph-x');
+            } else {
+                menuIcon.classList.remove('ph-x');
+                menuIcon.classList.add('ph-list');
+            }
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleMenu);
+        }
+
+        // Flying Heart Animation
+        document.querySelectorAll('nav a, aside a, .mobile-nav a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                const heart = document.createElement('div');
+                heart.innerHTML = '❤️';
+                heart.classList.add('flying-heart');
+
+                const x = e.clientX || (e.touches && e.touches[0].clientX);
+                const y = e.clientY || (e.touches && e.touches[0].clientY);
+
+                if (x && y) {
+                    heart.style.left = x + 'px';
+                    heart.style.top = y + 'px';
+                    document.body.appendChild(heart);
+
+                    setTimeout(() => {
+                        heart.remove();
+                    }, 1000);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

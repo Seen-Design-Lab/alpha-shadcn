@@ -1,40 +1,101 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+# Shadcn → Figma (One-Click Design System Import)
 
-  https://www.figma.com/plugin-docs/plugin-quickstart-guide/
+Bring the full **shadcn/ui design system** into Figma in a single click.  
+This plugin instantly generates variables, colors, typography, radii, spacing, and all core tokens—plus fully structured component sets—directly inside your Figma file.
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+Designers get the entire system *ready in seconds*, no setup, no manual rebuilding, no hunting through docs.
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+---
 
-  https://nodejs.org/en/download/
+## ✨ What This Plugin Does
 
-Next, install TypeScript using the command:
+- Imports the **full shadcn/ui design system** into Figma automatically  
+- Generates **Variables** (colors, typography, spacing, radii, shadows)
+- Creates **Component Sets** structured exactly like shadcn/ui
+- Sets up **separate Figma pages** for:
+  - Tokens & Variables  
+  - Base Components  
+  - Component Variants  
+  - Patterns & Layouts
+- Ensures pixel-perfect mapping between shadcn/ui and Figma
+- Designed for both designers and frontend teams using shadcn/ui
 
-  npm install -g typescript
+---
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
+## 🚀 Why This Exists
 
-  npm install --save-dev @figma/plugin-typings
+Setting up a design system manually takes hours.  
+Importing shadcn/ui into Figma used to require:
+- Rebuilding tokens by hand  
+- Manually converting Tailwind values  
+- Creating variants one by one  
+- Keeping everything synced with code  
 
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
+This plugin removes all of that friction.  
+Click once → the entire system appears ready to design with.
 
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
+---
 
-For more information, visit https://www.typescriptlang.org/
+## 🧩 How It Works
 
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
+1. Run the plugin in any Figma file  
+2. Choose the shadcn/ui preset (default)  
+3. The plugin generates:
+   - Figma Variables
+   - Component sets
+   - Auto-organized pages
+4. Start designing immediately with consistent system components  
 
-We recommend writing TypeScript code using Visual Studio code:
+---
 
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
+## 📁 Generated File Structure
 
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+📂 Your Figma File
+├─ 🎨 Tokens & Variables
+│ ├─ Colors
+│ ├─ Typography
+│ ├─ Spacing
+│ ├─ Radii
+│ └─ Shadows
+├─ 🧱 Base Components
+├─ 🧩 Component Variants
+└─ 📐 Patterns / Layouts
+
+
+Everything is clean, editable, and aligns with production shadcn/ui code.
+
+---
+
+## 🔧 Features on the Roadmap
+
+- Sync updates from shadcn/ui directly into Figma  
+- Support for custom themes & palettes  
+- One-click Tailwind → Figma variable generation  
+- Import user-defined component extensions  
+
+---
+
+## 📦 Installation
+
+Search **“Shadcn → Figma”** in the Figma Community  
+or open the plugin URL directly.
+
+---
+
+## 🤝 Contributing
+
+PRs are welcome!  
+If you want to add integrations, presets, or improvements, feel free to open an issue or submit a pull request.
+
+---
+
+## 📝 License
+
+MIT License – free to use and modify.
+
+---
+
+## 💬 Feedback
+
+Have ideas? Found a bug?  
+Open an issue and help make this plugin even better for the community.

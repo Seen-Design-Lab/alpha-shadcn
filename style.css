@@ -260,7 +260,7 @@ header {
 
 /* Hero Section */
 .hero {
-    padding: 120px 0 100px;
+    padding: 160px 0 120px;
     text-align: center;
 }
 
@@ -273,15 +273,41 @@ header {
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--text-secondary);
-    margin-bottom: 24px;
+    margin-bottom: 32px;
     border: 1px solid var(--border-color);
     padding: 6px 12px;
     border-radius: 100px;
 }
 
+.hero-badge-custom {
+    display: inline-block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    /* padding: 6px 12px; */
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 32px;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
+.badge-custom {
+    display: inline-block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-right: 1px solid var(--border-color);
+    padding: 6px 12px;
+    /* border-radius: 100px; */
+}
+
 .hero-sub {
     font-size: 1.25rem;
-    margin-bottom: 40px;
+    margin-bottom: 48px;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
@@ -512,5 +538,30 @@ footer {
 
     .btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        padding: 100px 0 60px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .hero-badge-custom {
+        border-radius: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        border: none;
+    }
+
+    .badge-custom {
+        border: 1px solid var(--border-color);
+        border-radius: 100px;
+        margin: 4px;
+        font-size: 0.75rem;
     }
 }

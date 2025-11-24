@@ -310,6 +310,7 @@ async function createEffectStyles() {
 
   const existingStyles = await figma.getLocalEffectStylesAsync();
 
+  // Create shadow styles
   for (const style of shadowStyles) {
     let effectStyle = existingStyles.find(s => s.name === `shadcn/${style.name}`);
 
@@ -328,6 +329,299 @@ async function createEffectStyles() {
       blendMode: 'NORMAL'
     }];
   }
+
+  // Create Grid Styles
+  const existingGridStyles = await figma.getLocalGridStylesAsync();
+
+  const gridStyles = [
+    // --- Mobile Grids (320-767px) ---
+    {
+      name: 'shadcn/Grid/Mobile/4-Col',
+      grids: [
+        {
+          pattern: 'COLUMNS' as const,
+          sectionSize: 72,
+          count: 4,
+          gutterSize: 16,
+          alignment: 'CENTER' as const,
+          color: { r: 1, g: 0, b: 0, a: 0.1 },
+          visible: true
+        },
+        {
+          pattern: 'GRID' as const,
+          sectionSize: 8,
+          color: { r: 0, g: 0, b: 1, a: 0.05 },
+          visible: true
+        }
+      ]
+    },
+    {
+      name: 'shadcn/Grid/Mobile/6-Col',
+      grids: [
+        {
+          pattern: 'COLUMNS' as const,
+          sectionSize: 48,
+          count: 6,
+          gutterSize: 16,
+          alignment: 'CENTER' as const,
+          color: { r: 1, g: 0, b: 0, a: 0.1 },
+          visible: true
+        },
+        {
+          pattern: 'GRID' as const,
+          sectionSize: 8,
+          color: { r: 0, g: 0, b: 1, a: 0.05 },
+          visible: true
+        }
+      ]
+    },
+
+    // --- Tablet Grids (768-1023px) ---
+    {
+      name: 'shadcn/Grid/Tablet/8-Col',
+      grids: [
+        {
+          pattern: 'COLUMNS' as const,
+          sectionSize: 60,
+          count: 8,
+          gutterSize: 20,
+          alignment: 'CENTER' as const,
+          color: { r: 1, g: 0, b: 0, a: 0.1 },
+          visible: true
+        },
+        {
+          pattern: 'GRID' as const,
+          sectionSize: 8,
+          color: { r: 0, g: 0, b: 1, a: 0.05 },
+          visible: true
+        }
+      ]
+    },
+    {
+      name: 'shadcn/Grid/Tablet/10-Col',
+      grids: [
+        {
+          pattern: 'COLUMNS' as const,
+          sectionSize: 56,
+          count: 10,
+          gutterSize: 24,
+          alignment: 'CENTER' as const,
+          color: { r: 1, g: 0, b: 0, a: 0.1 },
+          visible: true
+        },
+        {
+          pattern: 'GRID' as const,
+          sectionSize: 8,
+          color: { r: 0, g: 0, b: 1, a: 0.05 },
+          visible: true
+        }
+      ]
+    },
+
+    // --- Desktop Grids (1024-1439px) ---
+    {
+      name: 'shadcn/Grid/Desktop/10-Col',
+      grids: [
+        {
+          pattern: 'COLUMNS' as const,
+          sectionSize: 96,
+          count: 10,
+          gutterSize: 24,
+          alignment: 'CENTER' as const,
+          color: { r: 1, g: 0, b: 0, a: 0.1 },
+          visible: true
+        },
+        {
+          pattern: 'GRID' as const,
+          sectionSize: 8,
+          color: { r: 0, g: 0, b: 1, a: 0.05 },
+          visible: true
+        }
+      ]
+    },
+    {
+      name: 'shadcn/Grid/Desktop/12-Col',
+      grids: [
+        {
+          pattern: 'COLUMNS' as const,
+          sectionSize: 80,
+          count: 12,
+          gutterSize: 24,
+          alignment: 'CENTER' as const,
+          color: { r: 1, g: 0, b: 0, a: 0.1 },
+          visible: true
+        },
+        {
+          pattern: 'GRID' as const,
+          sectionSize: 8,
+          color: { r: 0, g: 0, b: 1, a: 0.05 },
+          visible: true
+        }
+      ]
+    },
+
+    // --- Large Desktop Grids (1440px+) ---
+    {
+      name: 'shadcn/Grid/Large Desktop/12-Col',
+      grids: [
+        {
+          pattern: 'COLUMNS' as const,
+          sectionSize: 96,
+          count: 12,
+          gutterSize: 32,
+          alignment: 'CENTER' as const,
+          color: { r: 1, g: 0, b: 0, a: 0.1 },
+          visible: true
+        },
+        {
+          pattern: 'GRID' as const,
+          sectionSize: 8,
+          color: { r: 0, g: 0, b: 1, a: 0.05 },
+          visible: true
+        }
+      ]
+    },
+    {
+      name: 'shadcn/Grid/Large Desktop/16-Col',
+      grids: [
+        {
+          pattern: 'COLUMNS' as const,
+          sectionSize: 72,
+          count: 16,
+          gutterSize: 32,
+          alignment: 'CENTER' as const,
+          color: { r: 1, g: 0, b: 0, a: 0.1 },
+          visible: true
+        },
+        {
+          pattern: 'GRID' as const,
+          sectionSize: 8,
+          color: { r: 0, g: 0, b: 1, a: 0.05 },
+          visible: true
+        }
+      ]
+    }
+  ];
+
+  for (const gridStyleDef of gridStyles) {
+    let gridStyle = existingGridStyles.find(s => s.name === gridStyleDef.name);
+
+    if (!gridStyle) {
+      gridStyle = figma.createGridStyle();
+      gridStyle.name = gridStyleDef.name;
+    }
+
+    gridStyle.layoutGrids = gridStyleDef.grids;
+  }
+}
+
+// Helper function to apply grid layout to a frame
+function applyGridLayout(frame: FrameNode, gridType: 'mobile' | 'desktop') {
+  if (gridType === 'mobile') {
+    frame.layoutGrids = [
+      {
+        pattern: 'COLUMNS',
+        sectionSize: 16,
+        count: 4,
+        gutterSize: 16,
+        alignment: 'CENTER',
+        color: { r: 1, g: 0, b: 0, a: 0.1 },
+        visible: true
+      },
+      {
+        pattern: 'GRID',
+        sectionSize: 8,
+        color: { r: 0, g: 0, b: 1, a: 0.05 },
+        visible: true
+      }
+    ];
+  } else if (gridType === 'desktop') {
+    frame.layoutGrids = [
+      {
+        pattern: 'COLUMNS',
+        sectionSize: 64,
+        count: 12,
+        gutterSize: 24,
+        alignment: 'CENTER',
+        color: { r: 1, g: 0, b: 0, a: 0.1 },
+        visible: true
+      },
+      {
+        pattern: 'GRID',
+        sectionSize: 8,
+        color: { r: 0, g: 0, b: 1, a: 0.05 },
+        visible: true
+      }
+    ];
+  }
+}
+
+// Create reusable grid template frames (acts as grid "styles" library)
+async function createGridExamples(page: PageNode) {
+  // Note: Figma API doesn't support creating grid styles directly.
+  // These template frames serve as a reusable grid system library.
+
+  const gridTemplates = [
+    // Mobile devices
+    { name: 'Mobile / iPhone SE', width: 375, height: 667, type: 'mobile' as const },
+    { name: 'Mobile / iPhone 12/13', width: 390, height: 844, type: 'mobile' as const },
+    { name: 'Mobile / iPhone 14 Pro', width: 393, height: 852, type: 'mobile' as const },
+    { name: 'Mobile / Android', width: 360, height: 800, type: 'mobile' as const },
+
+    // Tablets
+    { name: 'Tablet / iPad Mini', width: 768, height: 1024, type: 'mobile' as const },
+    { name: 'Tablet / iPad Pro 11"', width: 834, height: 1194, type: 'desktop' as const },
+
+    // Desktop
+    { name: 'Desktop / Laptop', width: 1440, height: 900, type: 'desktop' as const },
+    { name: 'Desktop / Large', width: 1920, height: 1080, type: 'desktop' as const },
+    { name: 'Desktop / XL', width: 2560, height: 1440, type: 'desktop' as const },
+  ];
+
+  let yOffset = 50;
+  const xSpacing = 50;
+
+  for (const template of gridTemplates) {
+    const frame = figma.createFrame();
+    frame.name = template.name;
+    frame.resize(template.width, template.height);
+    frame.x = 50;
+    frame.y = yOffset;
+
+    // Light gray background to show grid clearly
+    frame.fills = [{ type: 'SOLID', color: { r: 0.98, g: 0.98, b: 0.98 } }];
+
+    // Apply appropriate grid
+    applyGridLayout(frame, template.type);
+
+    // Add description text
+    const description = figma.createText();
+    await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+    description.characters = `${template.width}×${template.height} • ${template.type === 'mobile' ? '4 cols, 16px gutter' : '12 cols, 24px gutter'} • 8px baseline`;
+    description.fontSize = 12;
+    description.fontName = { family: 'Inter', style: 'Regular' };
+    description.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 } }];
+    description.x = 50;
+    description.y = yOffset - 20;
+    page.appendChild(description);
+
+    page.appendChild(frame);
+
+    // Stack vertically with spacing
+    yOffset += template.height + 100;
+  }
+
+  // Add usage instructions
+  const instructions = figma.createText();
+  await figma.loadFontAsync({ family: 'Inter', style: 'Medium' });
+  instructions.characters = `📐 Grid System Templates\n\nDuplicate these frames to use as artboards with pre-configured grids.\nRed columns show content areas, blue grid shows 8px baseline.`;
+  instructions.fontSize = 14;
+  instructions.fontName = { family: 'Inter', style: 'Medium' };
+  instructions.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.2 } }];
+  instructions.x = 50;
+  instructions.y = 10;
+  instructions.resize(600, 60);
+  page.appendChild(instructions);
 }
 
 // Component Generation System
@@ -722,6 +1016,110 @@ async function generateComponent(
     componentSet.name = 'Alert';
     componentSet.x = 50;
     componentSet.y = 50;
+  }
+
+  else if (componentName === 'accordion') {
+    const variants = [
+      { name: 'closed-default', open: false, hover: false },
+      { name: 'closed-hover', open: false, hover: true },
+      { name: 'open-default', open: true, hover: false },
+      { name: 'open-hover', open: true, hover: true },
+    ];
+
+    const componentSetFrame = figma.createFrame();
+    componentSetFrame.name = 'Accordion';
+    componentSetFrame.layoutMode = 'VERTICAL';
+    componentSetFrame.itemSpacing = 20;
+    componentSetFrame.x = 50;
+    componentSetFrame.y = 50;
+    componentSetFrame.fills = [];
+
+    for (const variant of variants) {
+      const openStr = variant.open ? 'True' : 'False';
+      const hoverStr = variant.hover ? 'True' : 'False';
+      const frame = figma.createFrame();
+      frame.name = `Open=${openStr}, Hover=${hoverStr}`;
+      frame.layoutMode = 'VERTICAL';
+      frame.primaryAxisSizingMode = 'AUTO';
+      frame.counterAxisSizingMode = 'FIXED';
+      frame.resize(450, 100);
+      frame.paddingBottom = variant.open ? 16 : 0;
+
+      const borderVar = findVariable('border');
+      if (borderVar) {
+        frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+        frame.strokeWeight = 1;
+      }
+
+      const trigger = figma.createFrame();
+      trigger.layoutMode = 'HORIZONTAL';
+      trigger.primaryAxisAlignItems = 'SPACE_BETWEEN';
+      trigger.counterAxisAlignItems = 'CENTER';
+      trigger.layoutSizingHorizontal = 'FILL';
+      trigger.paddingTop = 16;
+      trigger.paddingBottom = 16;
+      trigger.fills = [];
+
+      const title = figma.createText();
+      title.characters = 'Is it accessible?';
+      title.fontSize = 16;
+      title.fontName = { family: 'Inter', style: 'Medium' };
+      if (variant.hover) {
+        title.textDecoration = 'UNDERLINE';
+      }
+      const fgVar = findVariable('foreground');
+      if (fgVar) {
+        title.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+      trigger.appendChild(title);
+
+      const icon = figma.createVector();
+      icon.vectorPaths = [{
+        windingRule: 'NONZERO',
+        data: 'M4 6L8 10L12 6'
+      }];
+      icon.strokeWeight = 2;
+      icon.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
+      if (fgVar) {
+        icon.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+      }
+      if (variant.open) {
+        icon.rotation = 180;
+      }
+      icon.resize(16, 16);
+      trigger.appendChild(icon);
+      frame.appendChild(trigger);
+
+      if (variant.open) {
+        const content = figma.createText();
+        content.characters = 'Yes. It adheres to the WAI-ARIA design pattern.';
+        content.fontSize = 14;
+        content.fontName = { family: 'Inter', style: 'Regular' };
+        if (fgVar) {
+          content.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
+        }
+        frame.appendChild(content);
+      }
+
+      componentSetFrame.appendChild(frame);
+    }
+
+    page.appendChild(componentSetFrame);
+
+    const components: ComponentNode[] = [];
+    for (const child of componentSetFrame.children) {
+      const component = figma.createComponentFromNode(child as FrameNode);
+      components.push(component);
+    }
+    const componentSet = figma.combineAsVariants(components, componentSetFrame);
+    componentSet.name = 'Accordion';
+    componentSet.x = 50;
+    componentSet.y = 50;
+  }
+
+  else if (componentName === 'grids') {
+    // Create grid layout examples
+    await createGridExamples(page);
   }
 
   else if (componentName === 'textarea') {
@@ -3228,13 +3626,28 @@ figma.ui.onmessage = async (msg) => {
       // Create Effect Styles
       await createEffectStyles();
 
+      // Create Grid System Templates
+      console.log('Starting grid creation...');
+      let gridPage = figma.root.children.find(p => p.name === '📐 Grid System') as PageNode;
+      if (!gridPage) {
+        console.log('Creating new Grid System page...');
+        gridPage = figma.createPage();
+        gridPage.name = '📐 Grid System';
+      } else {
+        console.log('Grid System page already exists');
+      }
+      await gridPage.loadAsync();
+      console.log('Grid page loaded, creating examples...');
+      await createGridExamples(gridPage);
+      console.log('Grid examples created successfully!');
+
       const colorCount = Object.keys(rootColors).length;
       const numberCount = Object.keys(rootNumbers).length;
       const source = msg.useDefault ? 'default Shadcn tokens' : 'custom CSS';
 
       figma.ui.postMessage({
         type: 'status',
-        message: `✓ Generated ${colorCount} color variables, ${numberCount} number variables, 11 text styles, and 5 effect styles from ${source}!`,
+        message: `✓ Generated ${colorCount} color variables, ${numberCount} number variables, 11 text styles, 5 effect styles, and 2 grid styles from ${source}!`,
         status: 'success'
       });
 
@@ -3286,6 +3699,7 @@ figma.ui.onmessage = async (msg) => {
         '📦 Menus': ['dropdown-menu', 'context-menu', 'command'],
         '📦 Data': ['table', 'calendar', 'chart', 'carousel'],
         '📦 Forms Advanced': ['form'],
+        '📦 Grids': ['grids'],
 
       };
 

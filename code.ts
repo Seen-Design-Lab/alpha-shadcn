@@ -1055,7 +1055,6 @@ async function generateComponent(
       trigger.layoutMode = 'HORIZONTAL';
       trigger.primaryAxisAlignItems = 'SPACE_BETWEEN';
       trigger.counterAxisAlignItems = 'CENTER';
-      trigger.layoutSizingHorizontal = 'FILL';
       trigger.paddingTop = 16;
       trigger.paddingBottom = 16;
       trigger.fills = [];
@@ -1076,7 +1075,7 @@ async function generateComponent(
       const icon = figma.createVector();
       icon.vectorPaths = [{
         windingRule: 'NONZERO',
-        data: 'M4 6L8 10L12 6'
+        data: 'M 4 6 L 8 10 L 12 6'
       }];
       icon.strokeWeight = 2;
       icon.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
@@ -1089,6 +1088,7 @@ async function generateComponent(
       icon.resize(16, 16);
       trigger.appendChild(icon);
       frame.appendChild(trigger);
+      trigger.layoutSizingHorizontal = 'FILL';
 
       if (variant.open) {
         const content = figma.createText();
@@ -1222,7 +1222,6 @@ async function generateComponent(
       trigger.layoutMode = 'HORIZONTAL';
       trigger.primaryAxisAlignItems = 'SPACE_BETWEEN';
       trigger.counterAxisAlignItems = 'CENTER';
-      trigger.layoutSizingHorizontal = 'FILL';
       trigger.paddingTop = 16;
       trigger.paddingBottom = 16;
       trigger.fills = [];
@@ -1243,7 +1242,7 @@ async function generateComponent(
       const icon = figma.createVector();
       icon.vectorPaths = [{
         windingRule: 'NONZERO',
-        data: 'M4 6L8 10L12 6'
+        data: 'M 4 6 L 8 10 L 12 6'
       }];
       icon.strokeWeight = 2;
       icon.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
@@ -1256,6 +1255,7 @@ async function generateComponent(
       icon.resize(16, 16);
       trigger.appendChild(icon);
       frame.appendChild(trigger);
+      trigger.layoutSizingHorizontal = 'FILL';
 
       if (variant.open) {
         const content = figma.createText();

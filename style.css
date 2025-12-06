@@ -1806,8 +1806,12 @@ pre code {
         display: block;
     }
 
-    /* Add padding to main content to account for fixed bottom nav */
+    /* Add padding to main content and footer to account for fixed bottom nav */
     .main-wrapper {
-        padding-bottom: 80px;
+        padding-bottom: 100px;
+    }
+
+    footer {
+        margin-bottom: 80px;
     }
 }

@@ -274,34 +274,6 @@
         </div>
     </footer>
 
-    <!-- Mobile Bottom Navigation (Mobile Only) -->
-    <div class="mobile-bottom-nav">
-        <div class="mobile-breadcrumb">
-            <button class="mobile-breadcrumb-trigger" id="mobileNavTrigger">
-                Updates
-            </button>
-            <i class="ph ph-caret-right"></i>
-            <span class="mobile-breadcrumb-current">Changelog</span>
-        </div>
-    </div>
-
-    <!-- Mobile Changelog Drawer -->
-    <div class="drawer-backdrop" id="drawerBackdrop"></div>
-    <div class="mobile-changelog-drawer" id="changelogDrawer">
-        <div class="drawer-handle"></div>
-        <div class="drawer-content">
-            <div class="drawer-header">
-                <h4>Changelog</h4>
-            </div>
-            <div class="drawer-versions">
-                <a href="#v0-0-3-alpha" class="drawer-version-item active">v0.0.3-Alpha</a>
-                <a href="#v0-0-2-alpha" class="drawer-version-item">v0.0.2-Alpha</a>
-                <a href="#v0-0-0-alpha" class="drawer-version-item">v0.0.0-Alpha</a>
-                <a href="#v1-0-0" class="drawer-version-item">v1.0.0</a>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Mobile Menu Toggle
         const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
@@ -326,57 +298,6 @@
         if (mobileMenuBtn) {
             mobileMenuBtn.addEventListener('click', toggleMenu);
         }
-
-        // Mobile Changelog Drawer Toggle
-        const mobileNavTrigger = document.getElementById('mobileNavTrigger');
-        const changelogDrawer = document.getElementById('changelogDrawer');
-        const drawerBackdrop = document.getElementById('drawerBackdrop');
-        const drawerVersionItems = document.querySelectorAll('.drawer-version-item');
-
-        function openDrawer() {
-            changelogDrawer.classList.add('open');
-            drawerBackdrop.classList.add('show');
-            body.classList.add('no-scroll');
-        }
-
-        function closeDrawer() {
-            changelogDrawer.classList.remove('open');
-            drawerBackdrop.classList.remove('show');
-            body.classList.remove('no-scroll');
-        }
-
-        if (mobileNavTrigger) {
-            mobileNavTrigger.addEventListener('click', openDrawer);
-        }
-
-        if (drawerBackdrop) {
-            drawerBackdrop.addEventListener('click', closeDrawer);
-        }
-
-        // Close drawer and scroll to version when clicked
-        drawerVersionItems.forEach(item => {
-            item.addEventListener('click', function (e) {
-                // Remove active class from all items
-                drawerVersionItems.forEach(i => i.classList.remove('active'));
-                // Add active class to clicked item
-                this.classList.add('active');
-
-                // Close drawer
-                closeDrawer();
-
-                // Smooth scroll to target
-                const targetId = this.getAttribute('href');
-                if (targetId && targetId.startsWith('#')) {
-                    e.preventDefault();
-                    const targetElement = document.querySelector(targetId);
-                    if (targetElement) {
-                        setTimeout(() => {
-                            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 300); // Wait for drawer to close
-                    }
-                }
-            });
-        });
 
         // Flying Heart Animation
         document.querySelectorAll('nav a, aside a, .mobile-nav a').forEach(link => {

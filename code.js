@@ -3748,6 +3748,37 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
             figma.ui.postMessage({ type: 'status', message: 'Error: ' + errorMessage, status: 'error' });
         }
     }
+    // Generate every component in one tag/category into its page.
+    if (msg.type === 'generate-category') {
+        try {
+            // The UI sends the display tag (📦 stripped); resolve back to the page.
+            const pageName = Object.keys(PAGE_STRUCTURE).find(p => p.replace(/^📦\s*/, '') === msg.tag);
+            if (!pageName) {
+                figma.ui.postMessage({ type: 'status', message: `Unknown category: ${msg.tag}`, status: 'error' });
+                return;
+            }
+            const ctx = yield getComponentBindingContext();
+            if (!ctx)
+                return;
+            figma.ui.postMessage({ type: 'status', message: `Generating ${msg.tag}…`, status: 'info' });
+            const page = yield ensurePage(pageName);
+            const names = PAGE_STRUCTURE[pageName];
+            for (const componentName of names) {
+                yield generateComponent(componentName, page, ctx.findVariable, ctx.colorCollection);
+            }
+            organizePageLayout(page);
+            figma.ui.postMessage({
+                type: 'status',
+                message: `✓ Added ${names.length} components to ${pageName}`,
+                status: 'success',
+            });
+        }
+        catch (e) {
+            console.error('Plugin Error:', e);
+            const errorMessage = e.message || (typeof e === 'string' ? e : JSON.stringify(e));
+            figma.ui.postMessage({ type: 'status', message: 'Error: ' + errorMessage, status: 'error' });
+        }
+    }
     // Generate every component across all tags/pages.
     if (msg.type === 'generate-components') {
         try {

@@ -77,51 +77,182 @@
             color: var(--secondary-foreground);
         }
 
-        .component-list {
+        /* Components header + view toggle */
+        .components-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .components-header h2 {
+            margin: 0;
+        }
+
+        .view-toggle {
+            display: inline-flex;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            background: transparent;
+            color: var(--muted-foreground);
+            border: none;
+            padding: 5px 8px;
+            border-radius: 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .view-toggle button svg {
+            width: 14px;
+            height: 14px;
+            display: block;
+        }
+
+        .view-toggle button.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+        }
+
+        /* Breadcrumb (inside a category) */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .back-btn,
+        .link-btn {
+            background: transparent;
+            border: none;
+            padding: 2px 0;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        .link-btn {
+            color: var(--muted-foreground);
+        }
+
+        .back-btn:hover,
+        .link-btn:hover {
+            opacity: 0.8;
+        }
+
+        .back-btn:disabled,
+        .link-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Scrollable component / folder area */
+        .component-area {
             flex: 1;
             overflow-y: auto;
             border: 1px solid var(--border);
             border-radius: var(--radius);
             margin-bottom: 8px;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .component-area.view-card {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            align-content: start;
+        }
+
+        .component-area.view-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 0;
         }
 
         .list-empty {
             padding: 16px 12px;
             font-size: 12px;
             color: var(--muted-foreground);
+            grid-column: 1 / -1;
         }
 
-        .tag-header {
-            position: sticky;
-            top: 0;
-            background: #fff;
-            padding: 8px 12px 4px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--muted-foreground);
-            border-bottom: 1px solid var(--border);
+        /* A tile (folder or component) — card mode */
+        .tile {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px;
+            box-sizing: border-box;
         }
 
-        .component-row {
+        .tile-top {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             gap: 8px;
-            padding: 6px 12px;
+        }
+
+        .tile-icon {
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .tile-name {
             font-size: 12px;
-        }
-
-        .component-row:hover {
-            background: var(--secondary);
-        }
-
-        .component-name {
+            font-weight: 500;
             color: var(--primary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .tile-meta {
+            font-size: 10px;
+            color: var(--muted-foreground);
+        }
+
+        .folder.tile {
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .folder.tile:hover {
+            border-color: var(--ring);
+            background: var(--secondary);
+        }
+
+        /* List mode: tiles collapse into compact rows */
+        .view-list .tile {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            border-radius: 0;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        .view-list .tile:last-child {
+            border-bottom: none;
+        }
+
+        .view-list .tile-meta {
+            margin-left: auto;
+        }
+
+        .view-list .folder.tile:hover {
+            background: var(--secondary);
+            border-color: transparent;
         }
 
         .add-btn {
@@ -136,6 +267,10 @@
             flex-shrink: 0;
         }
 
+        .view-card .add-btn {
+            width: 100%;
+        }
+
         .add-btn:hover {
             opacity: 0.85;
         }
@@ -143,6 +278,16 @@
         .add-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .chevron {
+            color: var(--muted-foreground);
+            font-size: 14px;
+            margin-left: auto;
+        }
+
+        .view-card .folder .chevron {
+            display: none;
         }
 
         .resize-handle {
@@ -307,14 +452,30 @@
 
     <div class="divider"></div>
 
-    <h2>Components</h2>
-    <p>Add a single component to its page, or add them all at once. Pages are created automatically.</p>
+    <div class="components-header">
+        <h2 id="componentsTitle">Components</h2>
+        <div class="view-toggle" role="group" aria-label="View mode">
+            <button id="cardViewBtn" class="active" title="Card view" aria-label="Card view">
+                <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+            </button>
+            <button id="listViewBtn" title="List view" aria-label="List view">
+                <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2.5" rx="1"/><rect x="1" y="6.75" width="14" height="2.5" rx="1"/><rect x="1" y="11.5" width="14" height="2.5" rx="1"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="breadcrumb" class="breadcrumb" style="display:none;">
+        <button id="backBtn" class="back-btn">← All categories</button>
+        <button id="addCategoryBtn" class="link-btn">Add all</button>
+    </div>
+
+    <p id="componentsHint">Pick a category to browse and add components. Pages are created automatically.</p>
 
     <div class="button-group">
         <button id="generateComponentsBtn">Add All Components</button>
     </div>
 
-    <div id="componentList" class="component-list">
+    <div id="componentArea" class="component-area view-card">
         <div class="list-empty">Loading components…</div>
     </div>
 
@@ -378,21 +539,26 @@
     <script>
         const generateBtn = document.getElementById('generateBtn');
         const generateComponentsBtn = document.getElementById('generateComponentsBtn');
-        const componentList = document.getElementById('componentList');
+        const componentArea = document.getElementById('componentArea');
+        const componentsTitle = document.getElementById('componentsTitle');
+        const componentsHint = document.getElementById('componentsHint');
+        const breadcrumb = document.getElementById('breadcrumb');
+        const backBtn = document.getElementById('backBtn');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const cardViewBtn = document.getElementById('cardViewBtn');
+        const listViewBtn = document.getElementById('listViewBtn');
         const status = document.getElementById('status');
 
         let isBusy = false;
+        let groups = [];          // [{ tag, components: [] }]
+        let currentTag = null;    // null = folder view; otherwise the open category
+        let viewMode = 'card';    // 'card' | 'list'
 
-        // Every clickable control that triggers a plugin job. Locked while a job
-        // runs so the user can't queue duplicate runs. Per-component "Add"
-        // buttons are added here as the list renders.
-        const actionButtons = [generateBtn, generateComponentsBtn];
-
+        // Lock every button while a job runs so duplicate runs can't be queued.
         function setBusy(busy) {
             isBusy = busy;
-            actionButtons.forEach(btn => {
+            document.querySelectorAll('button').forEach(btn => {
                 btn.disabled = busy;
-                btn.setAttribute('aria-busy', busy ? 'true' : 'false');
             });
         }
 
@@ -402,37 +568,93 @@
             parent.postMessage({ pluginMessage: message }, '*');
         }
 
+        // Turn "radio-group" into "Radio Group" for display.
+        function prettify(name) {
+            return name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+
         generateBtn.onclick = () => send({ type: 'generate-variables', useDefault: true });
         generateComponentsBtn.onclick = () => send({ type: 'generate-components' });
 
-        // Build the grouped component list from the catalog sent by the plugin.
-        function renderComponentList(groups) {
-            componentList.innerHTML = '';
-            groups.forEach(group => {
-                const header = document.createElement('div');
-                header.className = 'tag-header';
-                header.textContent = group.tag;
-                componentList.appendChild(header);
+        cardViewBtn.onclick = () => setView('card');
+        listViewBtn.onclick = () => setView('list');
+
+        function setView(mode) {
+            viewMode = mode;
+            cardViewBtn.classList.toggle('active', mode === 'card');
+            listViewBtn.classList.toggle('active', mode === 'list');
+            componentArea.classList.toggle('view-card', mode === 'card');
+            componentArea.classList.toggle('view-list', mode === 'list');
+            render();
+        }
+
+        backBtn.onclick = () => { currentTag = null; render(); };
+        addCategoryBtn.onclick = () => { if (currentTag) send({ type: 'generate-category', tag: currentTag }); };
+
+        // Render either the folder grid or the open category's components.
+        function render() {
+            componentArea.innerHTML = '';
+
+            if (currentTag === null) {
+                // --- Folder / category view ---
+                componentsTitle.textContent = 'Components';
+                breadcrumb.style.display = 'none';
+                componentsHint.style.display = '';
+                generateComponentsBtn.style.display = '';
+
+                if (!groups.length) {
+                    componentArea.innerHTML = '<div class="list-empty">Loading components…</div>';
+                    return;
+                }
+
+                groups.forEach(group => {
+                    const tile = document.createElement('div');
+                    tile.className = 'folder tile';
+                    tile.onclick = () => { currentTag = group.tag; render(); };
+
+                    const top = document.createElement('div');
+                    top.className = 'tile-top';
+                    top.innerHTML = '<span class="tile-icon">📦</span>'
+                        + '<span class="tile-name">' + group.tag + '</span>'
+                        + '<span class="chevron">›</span>';
+
+                    const meta = document.createElement('span');
+                    meta.className = 'tile-meta';
+                    meta.textContent = group.components.length
+                        + (group.components.length === 1 ? ' component' : ' components');
+
+                    tile.appendChild(top);
+                    tile.appendChild(meta);
+                    componentArea.appendChild(tile);
+                });
+            } else {
+                // --- Inside a category ---
+                const group = groups.find(g => g.tag === currentTag);
+                componentsTitle.textContent = currentTag;
+                breadcrumb.style.display = 'flex';
+                componentsHint.style.display = 'none';
+                generateComponentsBtn.style.display = 'none';
+
+                if (!group) { componentArea.innerHTML = '<div class="list-empty">Empty.</div>'; return; }
 
                 group.components.forEach(name => {
-                    const row = document.createElement('div');
-                    row.className = 'component-row';
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
 
-                    const label = document.createElement('span');
-                    label.className = 'component-name';
-                    label.textContent = name;
+                    const nameEl = document.createElement('span');
+                    nameEl.className = 'tile-name';
+                    nameEl.textContent = prettify(name);
 
                     const btn = document.createElement('button');
                     btn.className = 'add-btn';
                     btn.textContent = 'Add';
                     btn.onclick = () => send({ type: 'generate-component', name });
-                    actionButtons.push(btn);
 
-                    row.appendChild(label);
-                    row.appendChild(btn);
-                    componentList.appendChild(row);
+                    tile.appendChild(nameEl);
+                    tile.appendChild(btn);
+                    componentArea.appendChild(tile);
                 });
-            });
+            }
         }
 
         window.onmessage = (event) => {
@@ -440,7 +662,8 @@
             if (!msg) return;
 
             if (msg.type === 'component-list') {
-                renderComponentList(msg.groups);
+                groups = msg.groups || [];
+                render();
             } else if (msg.type === 'status') {
                 showStatus(msg.message, msg.status);
                 // Re-enable the UI once a job reaches a terminal state.

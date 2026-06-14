@@ -644,6 +644,21 @@ function createGridExamples(page) {
         page.appendChild(instructions);
     });
 }
+// Combine pre-built variant components into one tidy, correctly-sized
+// ComponentSet. The old approach reused a manually-sized auto-layout frame as
+// the set parent, which left huge empty space; here we grid-position the
+// variants and let combineAsVariants size the set to their bounding box.
+function finalizeVariantSet(page, components, name, description, columns, cellW = 220, cellH = 72) {
+    components.forEach((c, i) => {
+        c.x = (i % columns) * cellW;
+        c.y = Math.floor(i / columns) * cellH;
+        page.appendChild(c);
+    });
+    const set = figma.combineAsVariants(components, page);
+    set.name = name;
+    set.description = description;
+    return set;
+}
 // Component Generation System
 function generateComponent(componentName, page, findVariable, colorCollection) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -675,70 +690,58 @@ function generateComponent(componentName, page, findVariable, colorCollection) {
             // px-3 = 12px, px-4 = 16px, px-8 = 32px
             // text-sm = 14px, text-base = 16px
             const sizes = [
-                { name: 'sm', height: 36, paddingX: 12, fontSize: 14, text: 'Small' },
-                { name: 'default', height: 40, paddingX: 16, fontSize: 14, text: 'Button' },
-                { name: 'lg', height: 44, paddingX: 32, fontSize: 16, text: 'Large' },
+                { name: 'sm', height: 36, paddingX: 12, fontSize: 14 },
+                { name: 'default', height: 40, paddingX: 16, fontSize: 14 },
+                { name: 'lg', height: 44, paddingX: 24, fontSize: 16 },
             ];
             const variants = [
-                { name: 'default', bg: 'primary', fg: 'primary-foreground', border: null },
-                { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground', border: null },
-                { name: 'outline', bg: null, fg: 'foreground', border: 'input' },
-                { name: 'secondary', bg: 'secondary', fg: 'secondary-foreground', border: null },
-                { name: 'ghost', bg: null, fg: 'foreground', border: null },
+                { name: 'default', bg: 'primary', fg: 'primary-foreground', border: null, underline: false },
+                { name: 'destructive', bg: 'destructive', fg: 'destructive-foreground', border: null, underline: false },
+                { name: 'outline', bg: null, fg: 'foreground', border: 'input', underline: false },
+                { name: 'secondary', bg: 'secondary', fg: 'secondary-foreground', border: null, underline: false },
+                { name: 'ghost', bg: null, fg: 'foreground', border: null, underline: false },
                 { name: 'link', bg: null, fg: 'primary', border: null, underline: true },
             ];
-            // Create component set frames for each size
-            let yOffset = 50;
-            for (const size of sizes) {
-                const componentSetFrame = figma.createFrame();
-                componentSetFrame.name = `Button/${size.name}`;
-                componentSetFrame.layoutMode = 'HORIZONTAL';
-                componentSetFrame.itemSpacing = 16;
-                componentSetFrame.x = 50;
-                componentSetFrame.y = yOffset;
-                componentSetFrame.fills = [];
-                const componentsInSet = [];
-                for (const variant of variants) {
-                    const frame = figma.createFrame();
-                    frame.name = `variant=${variant.name}`;
-                    frame.layoutMode = 'HORIZONTAL';
-                    frame.primaryAxisAlignItems = 'CENTER';
-                    frame.counterAxisAlignItems = 'CENTER';
-                    frame.primaryAxisSizingMode = 'AUTO';
-                    frame.counterAxisSizingMode = 'FIXED';
-                    frame.paddingLeft = size.paddingX;
-                    frame.paddingRight = size.paddingX;
-                    frame.paddingTop = 0;
-                    frame.paddingBottom = 0;
-                    frame.itemSpacing = 8;
-                    frame.cornerRadius = 6;
-                    frame.resize(100, size.height);
+            // Build one component per (Variant × Size) combination, then combine into a
+            // single "Button" set with two variant properties.
+            const comps = [];
+            for (const variant of variants) {
+                for (const size of sizes) {
+                    const comp = figma.createComponent();
+                    comp.name = `Variant=${variant.name}, Size=${size.name}`;
+                    comp.layoutMode = 'HORIZONTAL';
+                    comp.primaryAxisAlignItems = 'CENTER';
+                    comp.counterAxisAlignItems = 'CENTER';
+                    comp.primaryAxisSizingMode = 'AUTO';
+                    comp.counterAxisSizingMode = 'FIXED';
+                    comp.paddingLeft = size.paddingX;
+                    comp.paddingRight = size.paddingX;
+                    comp.itemSpacing = 8;
+                    comp.cornerRadius = 6;
+                    comp.resize(100, size.height);
                     // Background
                     if (variant.bg) {
                         const bgVar = findVariable(variant.bg);
                         if (bgVar) {
-                            frame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
+                            comp.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: bgVar.id } } }];
                         }
                     }
                     else {
-                        frame.fills = [];
+                        comp.fills = [];
                     }
                     // Border
                     if (variant.border) {
                         const borderVar = findVariable(variant.border);
                         if (borderVar) {
-                            frame.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
-                            frame.strokeWeight = 1;
+                            comp.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: borderVar.id } } }];
+                            comp.strokeWeight = 1;
                         }
                     }
-                    // Text
+                    // Label
                     const text = figma.createText();
-                    text.characters = size.text;
+                    text.characters = 'Button';
                     text.fontSize = size.fontSize;
                     text.fontName = { family: 'Inter', style: 'Medium' };
-                    text.textAlignHorizontal = 'CENTER';
-                    text.textAlignVertical = 'CENTER';
-                    // Underline for link variant
                     if (variant.underline) {
                         text.textDecoration = 'UNDERLINE';
                     }
@@ -746,23 +749,11 @@ function generateComponent(componentName, page, findVariable, colorCollection) {
                     if (fgVar) {
                         text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: { type: 'VARIABLE_ALIAS', id: fgVar.id } } }];
                     }
-                    frame.appendChild(text);
-                    componentSetFrame.appendChild(frame);
+                    comp.appendChild(text);
+                    comps.push(comp);
                 }
-                page.appendChild(componentSetFrame);
-                // Convert each frame to a component first
-                const components = [];
-                for (const child of componentSetFrame.children) {
-                    const component = figma.createComponentFromNode(child);
-                    components.push(component);
-                }
-                // Convert to component set
-                const componentSet = figma.combineAsVariants(components, componentSetFrame);
-                componentSet.name = `Button/${size.name}`;
-                componentSet.x = 50;
-                componentSet.y = yOffset;
-                yOffset += 100;
             }
+            finalizeVariantSet(page, comps, 'Button', 'Shadcn button. Variant: default, destructive, outline, secondary, ghost, link. Size: sm, default, lg. Colors are bound to shadcn semantic variables.', sizes.length);
         }
         else if (componentName === 'input') {
             const frame = figma.createFrame();

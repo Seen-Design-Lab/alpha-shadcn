@@ -145,6 +145,28 @@
             cursor: not-allowed;
         }
 
+        .resize-handle {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            cursor: nwse-resize;
+            color: var(--border);
+            z-index: 2000;
+            touch-action: none;
+        }
+
+        .resize-handle:hover {
+            color: var(--muted-foreground);
+        }
+
+        .resize-handle svg {
+            display: block;
+            width: 16px;
+            height: 16px;
+        }
+
         #status {
             margin-top: 8px;
             font-size: 11px;
@@ -308,6 +330,12 @@
         </div>
     </div>
 
+    <div id="resizeHandle" class="resize-handle" title="Drag to resize">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M14 14H11L14 11V14ZM14 8L8 14H6L14 6V8Z"></path>
+        </svg>
+    </div>
+
     <script>
         const generateBtn = document.getElementById('generateBtn');
         const generateComponentsBtn = document.getElementById('generateComponentsBtn');
@@ -385,6 +413,31 @@
 
         // Ask the plugin for the component catalog now that the UI is ready.
         parent.postMessage({ pluginMessage: { type: 'request-component-list' } }, '*');
+
+        // --- Window resizing ---------------------------------------------------
+        // The iframe fills the plugin window, so the pointer's viewport
+        // coordinates equal the desired window size. Drag the corner handle to
+        // resize; the plugin clamps to a minimum and persists the size.
+        const resizeHandle = document.getElementById('resizeHandle');
+        let resizing = false;
+
+        resizeHandle.onpointerdown = (e) => {
+            resizing = true;
+            resizeHandle.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        };
+
+        resizeHandle.onpointermove = (e) => {
+            if (!resizing) return;
+            const width = Math.max(320, Math.ceil(e.clientX + 4));
+            const height = Math.max(400, Math.ceil(e.clientY + 4));
+            parent.postMessage({ pluginMessage: { type: 'resize', width, height } }, '*');
+        };
+
+        resizeHandle.onpointerup = (e) => {
+            resizing = false;
+            resizeHandle.releasePointerCapture(e.pointerId);
+        };
 
         function showStatus(message, type) {
             status.textContent = message;

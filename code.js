@@ -3187,6 +3187,13 @@ function getComponentBindingContext() {
     });
 }
 figma.showUI(__html__, { width: 400, height: 560 });
+// Restore the last window size the user dragged to, if any.
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    const saved = yield figma.clientStorage.getAsync('uiSize');
+    if (saved && saved.width && saved.height) {
+        figma.ui.resize(saved.width, saved.height);
+    }
+}))();
 // Tailwind Color Generation
 const tailwindColors = {
     slate: {
@@ -3536,6 +3543,15 @@ function generateTailwindVariables() {
     });
 }
 figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
+    // Resize the plugin window in response to the UI's drag handle, and remember
+    // the size for next time.
+    if (msg.type === 'resize') {
+        const width = Math.max(320, Math.round(msg.width));
+        const height = Math.max(400, Math.round(msg.height));
+        figma.ui.resize(width, height);
+        yield figma.clientStorage.setAsync('uiSize', { width, height });
+        return;
+    }
     if (msg.type === 'generate-variables') {
         try {
             const css = msg.useDefault ? DEFAULT_SHADCN_CSS : msg.css;

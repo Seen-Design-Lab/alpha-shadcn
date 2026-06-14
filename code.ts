@@ -1117,8 +1117,8 @@ async function gen_checkbox(page: PageNode, findVariable: (name: string) => Vari
         check.strokeWeight = 1.5;
         check.strokeCap = 'ROUND';
         check.strokeJoin = 'ROUND';
-        check.layoutPositioning = 'ABSOLUTE';
         comp.appendChild(check);
+        check.layoutPositioning = 'ABSOLUTE';
         check.x = (comp.width - check.width) / 2;
         check.y = (comp.height - check.height) / 2;
       } else {
@@ -3240,17 +3240,17 @@ async function gen_tooltip(page: PageNode, findVariable: (name: string) => Varia
   arrow.name = 'Arrow';
   const arrowSize = 9;
   arrow.resize(arrowSize, arrowSize);
-  // Take the rotated square out of auto-layout flow so manual x/y are honored.
-  arrow.layoutPositioning = 'ABSOLUTE';
   arrow.rotation = 45;
   // Figma rotates around the node's top-left origin. A square of side s rotated
   // 45deg spans a horizontal diagonal of s*sqrt(2). Center that diagonal in the
   // 12px-wide wrapper, and place the top point flush against the wrapper top.
   const diag = arrowSize * Math.SQRT2;
-  arrow.x = (12 - diag) / 2 + arrowSize / Math.SQRT2;
-  arrow.y = -arrowSize / Math.SQRT2;
   if (bg) arrow.fills = [varPaint(bg)];
   pointerWrap.appendChild(arrow);
+  // Take the rotated square out of flow (after appending) so manual x/y hold.
+  arrow.layoutPositioning = 'ABSOLUTE';
+  arrow.x = (12 - diag) / 2 + arrowSize / Math.SQRT2;
+  arrow.y = -arrowSize / Math.SQRT2;
 
   comp.appendChild(pointerWrap);
 

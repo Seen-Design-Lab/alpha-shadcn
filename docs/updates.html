@@ -76,7 +76,8 @@
             <div class="nav-group">
                 <h4>Changelog</h4>
                 <ul>
-                    <li><a href="#v0-0-3-alpha" class="active">v0.0.3-Alpha</a></li>
+                    <li><a href="#v0-0-4-alpha" class="active">v0.0.4-Alpha</a></li>
+                    <li><a href="#v0-0-3-alpha">v0.0.3-Alpha</a></li>
                     <li><a href="#v0-0-2-alpha">v0.0.2-Alpha</a></li>
                     <li><a href="#v0-0-0-alpha">v0.0.0-Alpha</a></li>
                     <li><a href="#v1-0-0">v1.0.0</a></li>
@@ -93,6 +94,47 @@
             </div>
 
             <h1 style="margin-bottom: 48px;">Changelog</h1>
+
+            <div id="v0-0-4-alpha" class="changelog-entry">
+                <div class="entry-header">
+                    <span class="version-badge">v0.0.4-Alpha</span>
+                    <span class="entry-date">June 15, 2026</span>
+                </div>
+
+                <div class="entry-content">
+                    <h3>Component Catalog, Aliased Colors &amp; Resizable Window</h3>
+                    <p>A major usability and architecture update — pick exactly the components you need, with a proper
+                        two-tier color system underneath. (Figma release version 15.)</p>
+
+                    <h4>New Features</h4>
+                    <ul>
+                        <li><strong>Component Catalog:</strong> Browse every component grouped by category and add them
+                            one at a time, or add them all at once. The matching page is created automatically when
+                            needed.</li>
+                        <li><strong>Resizable Window:</strong> Drag the bottom-right corner to resize the plugin — your
+                            chosen size is remembered the next time you open it.</li>
+                    </ul>
+
+                    <h4>Improvements</h4>
+                    <ul>
+                        <li><strong>Two-Tier Color Variables:</strong> Semantic tokens (primary, background, border…)
+                            now reference a new <code>shadcn/primitives</code> collection instead of baked-in colors.
+                            Light and Dark modes are built by aliasing primitives — the way a real design system
+                            works.</li>
+                        <li><strong>Streamlined UI:</strong> Removed the custom CSS input in favor of the new component
+                            catalog.</li>
+                        <li><strong>Safer Generation:</strong> Action buttons lock while a job runs to prevent duplicate
+                            pages and variables.</li>
+                    </ul>
+
+                    <h4>Fixes</h4>
+                    <ul>
+                        <li>Restricted the plugin to the Figma editor, where the Variables API is available.</li>
+                        <li>Fixed doubled emoji in generated page names.</li>
+                        <li>Faster variable lookups during component generation.</li>
+                    </ul>
+                </div>
+            </div>
 
             <div id="v0-0-3-alpha" class="changelog-entry">
                 <div class="entry-header">

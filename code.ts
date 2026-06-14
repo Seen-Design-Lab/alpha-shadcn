@@ -176,6 +176,62 @@ function parseNumber(value: string): number | null {
   return null;
 }
 
+// --- Primitive color helpers -------------------------------------------------
+// Used to build the `shadcn/primitives` collection: deduplicate raw colors and
+// give each one a readable, stable name (e.g. neutral/90, red/58, neutral/100/a10).
+
+interface Rgba { r: number; g: number; b: number; a?: number }
+
+// Stable identity key for a color so identical values share one primitive.
+function colorKey(c: Rgba): string {
+  const a = c.a === undefined ? 1 : c.a;
+  return [c.r, c.g, c.b, a].map(n => Math.round(n * 10000)).join('_');
+}
+
+// Convert sRGB (0..1) to HSL — used only for naming, never for the stored value.
+function rgbToHsl(r: number, g: number, b: number): { h: number, s: number, l: number } {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  const d = max - min;
+  if (d !== 0) {
+    s = d / (1 - Math.abs(2 * l - 1));
+    switch (max) {
+      case r: h = ((g - b) / d) % 6; break;
+      case g: h = (b - r) / d + 2; break;
+      default: h = (r - g) / d + 4; break;
+    }
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s, l };
+}
+
+// Map an HSL hue angle to a Tailwind-ish color family name.
+function hueFamily(h: number): string {
+  if (h < 15 || h >= 345) return 'red';
+  if (h < 45) return 'orange';
+  if (h < 70) return 'yellow';
+  if (h < 160) return 'green';
+  if (h < 190) return 'teal';
+  if (h < 250) return 'blue';
+  if (h < 290) return 'violet';
+  if (h < 330) return 'purple';
+  return 'pink';
+}
+
+// Human-readable primitive name derived from a color's perceived hue/lightness.
+function primitiveName(c: Rgba): string {
+  const { h, s, l } = rgbToHsl(c.r, c.g, c.b);
+  const step = Math.round(l * 100);
+  const family = s < 0.08 ? 'neutral' : hueFamily(h);
+  let name = `${family}/${step}`;
+  if (c.a !== undefined && c.a < 1) name += `/a${Math.round(c.a * 100)}`;
+  return name;
+}
+
 interface Token {
   name: string;
   value: string;
@@ -3934,8 +3990,55 @@ figma.ui.onmessage = async (msg) => {
         }
       }
 
-      // Create color variables
-      const existingColorVars = (await figma.variables.getLocalVariablesAsync()).filter(v => v.variableCollectionId === colorCollection!.id);
+      // Fetch all local variables once and reuse for both the color and number
+      // passes below (avoids a second full getLocalVariablesAsync round-trip).
+      const allLocalVars = await figma.variables.getLocalVariablesAsync();
+
+      // --- Primitives collection ---------------------------------------------
+      // The raw colors live here as a single-mode palette. Semantic tokens below
+      // do NOT store literal colors; they alias into this collection per mode, so
+      // Light/Dark are built by pointing at different primitives.
+      let primitiveCollection = collections.find(c => c.name === 'shadcn/primitives');
+      if (!primitiveCollection) {
+        primitiveCollection = figma.variables.createVariableCollection('shadcn/primitives');
+      }
+      const primitiveModeId = primitiveCollection.modes[0].modeId;
+      if (primitiveCollection.modes[0].name === 'Mode 1') {
+        primitiveCollection.renameMode(primitiveModeId, 'Value');
+      }
+
+      // Seed dedup maps from any primitives that already exist (re-run safe).
+      const existingPrimitiveVars = allLocalVars.filter(v => v.variableCollectionId === primitiveCollection!.id);
+      const primitiveByValue = new Map<string, Variable>();
+      const usedPrimitiveNames = new Set<string>();
+      for (const v of existingPrimitiveVars) {
+        usedPrimitiveNames.add(v.name);
+        const val = v.valuesByMode[primitiveModeId] as any;
+        if (val && typeof val === 'object' && 'r' in val) {
+          primitiveByValue.set(colorKey(val), v);
+        }
+      }
+
+      // Return the primitive variable for a color, creating it if new.
+      const getOrCreatePrimitive = (value: Rgba): Variable => {
+        const key = colorKey(value);
+        const existing = primitiveByValue.get(key);
+        if (existing) return existing;
+
+        const base = primitiveName(value);
+        let name = base;
+        let i = 2;
+        while (usedPrimitiveNames.has(name)) name = `${base}-${i++}`;
+
+        const variable = figma.variables.createVariable(name, primitiveCollection!, 'COLOR');
+        variable.setValueForMode(primitiveModeId, value);
+        usedPrimitiveNames.add(name);
+        primitiveByValue.set(key, variable);
+        return variable;
+      };
+
+      // --- Semantic color variables (alias into primitives) ------------------
+      const existingColorVars = allLocalVars.filter(v => v.variableCollectionId === colorCollection!.id);
 
       for (const name in rootColors) {
         const token = rootColors[name];
@@ -3945,12 +4048,19 @@ figma.ui.onmessage = async (msg) => {
           variable = figma.variables.createVariable(name, colorCollection, 'COLOR');
         }
 
-        variable.setValueForMode(lightModeId, token.parsedValue);
+        const lightPrimitive = getOrCreatePrimitive(token.parsedValue);
+        variable.setValueForMode(lightModeId, figma.variables.createVariableAlias(lightPrimitive));
 
-        if (darkModeId && darkColors[name]) {
-          variable.setValueForMode(darkModeId, darkColors[name].parsedValue);
+        if (darkModeId) {
+          // Use the dark override when present, otherwise fall back to the light
+          // primitive so the Dark mode is never left empty.
+          const darkValue = darkColors[name] ? darkColors[name].parsedValue : token.parsedValue;
+          const darkPrimitive = getOrCreatePrimitive(darkValue);
+          variable.setValueForMode(darkModeId, figma.variables.createVariableAlias(darkPrimitive));
         }
       }
+
+      const primitiveCount = primitiveByValue.size;
 
       // Create Number Collection
       let numberCollection = collections.find(c => c.name === 'shadcn/numbers');
@@ -3959,7 +4069,7 @@ figma.ui.onmessage = async (msg) => {
       }
 
       const numberModeId = numberCollection.modes[0].modeId;
-      const existingNumberVars = (await figma.variables.getLocalVariablesAsync()).filter(v => v.variableCollectionId === numberCollection!.id);
+      const existingNumberVars = allLocalVars.filter(v => v.variableCollectionId === numberCollection!.id);
 
       for (const name in rootNumbers) {
         const token = rootNumbers[name];
@@ -4010,7 +4120,7 @@ figma.ui.onmessage = async (msg) => {
 
       figma.ui.postMessage({
         type: 'status',
-        message: `✓ Generated ${colorCount} Shadcn color variables, ${numberCount} number variables, ${tailwindColorCount} Tailwind color variables, 11 text styles, 5 effect styles, and 2 grid styles from ${source}!`,
+        message: `✓ Generated ${colorCount} Shadcn semantic colors (aliased to ${primitiveCount} primitives), ${numberCount} number variables, ${tailwindColorCount} Tailwind color variables, 11 text styles, 5 effect styles, and 2 grid styles from ${source}!`,
         status: 'success'
       });
 
@@ -4045,10 +4155,16 @@ figma.ui.onmessage = async (msg) => {
       const colorVars = allVariables.filter(v => v.variableCollectionId === colorCollection.id);
       const numberVars = numberCollection ? allVariables.filter(v => v.variableCollectionId === numberCollection.id) : [];
 
+      // Index variables by name once. findVariable is called many times per
+      // component across 59 components, so an O(1) map lookup beats repeated
+      // linear scans over every local variable. Colors take precedence on name
+      // collisions, matching the previous `colorVars || numberVars` ordering.
+      const variableByName = new Map<string, Variable>();
+      for (const v of numberVars) variableByName.set(v.name, v);
+      for (const v of colorVars) variableByName.set(v.name, v);
+
       // Helper to find variable by name
-      const findVariable = (name: string) => {
-        return colorVars.find(v => v.name === name) || numberVars.find(v => v.name === name);
-      };
+      const findVariable = (name: string) => variableByName.get(name);
 
       // Create pages
       const pageStructure: Record<string, string[]> = {
@@ -4097,11 +4213,12 @@ figma.ui.onmessage = async (msg) => {
       for (const pageName in pageStructure) {
         const componentNames = pageStructure[pageName];
 
-        // Create or find page
-        let page = figma.root.children.find(p => p.name === `📦 ${pageName}`) as PageNode;
+        // Create or find page. pageStructure keys already include the 📦 prefix,
+        // so use the name as-is (avoids a doubled "📦 📦" on the page label).
+        let page = figma.root.children.find(p => p.name === pageName) as PageNode;
         if (!page) {
           page = figma.createPage();
-          page.name = `📦 ${pageName}`;
+          page.name = pageName;
         }
 
         // Load page before appending components (required for dynamic-page mode)

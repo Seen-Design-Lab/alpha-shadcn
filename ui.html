@@ -290,8 +290,24 @@
         const status = document.getElementById('status');
 
         let isCustomMode = false;
+        let isBusy = false;
+
+        // Buttons that trigger long-running plugin jobs. Locked while a job runs
+        // so the user can't queue duplicate runs (which would create duplicate
+        // pages/variables).
+        const actionButtons = [generateBtn, generateCustomBtn, generateComponentsBtn];
+
+        function setBusy(busy) {
+            isBusy = busy;
+            actionButtons.forEach(btn => {
+                btn.disabled = busy;
+                btn.setAttribute('aria-busy', busy ? 'true' : 'false');
+            });
+        }
 
         generateBtn.onclick = () => {
+            if (isBusy) return;
+            setBusy(true);
             parent.postMessage({ pluginMessage: { type: 'generate-variables', useDefault: true } }, '*');
         };
 
@@ -302,15 +318,19 @@
         };
 
         generateCustomBtn.onclick = () => {
+            if (isBusy) return;
             const css = cssInput.value;
             if (!css.trim()) {
                 showStatus('Please paste some CSS first.', 'error');
                 return;
             }
+            setBusy(true);
             parent.postMessage({ pluginMessage: { type: 'generate-variables', css, useDefault: false } }, '*');
         };
 
         generateComponentsBtn.onclick = () => {
+            if (isBusy) return;
+            setBusy(true);
             parent.postMessage({ pluginMessage: { type: 'generate-components' } }, '*');
         };
 
@@ -318,6 +338,10 @@
             const msg = event.data.pluginMessage;
             if (msg.type === 'status') {
                 showStatus(msg.message, msg.status);
+                // Re-enable the UI once a job reaches a terminal state.
+                if (msg.status === 'success' || msg.status === 'error') {
+                    setBusy(false);
+                }
             }
         };
 

@@ -3112,7 +3112,81 @@ function generateComponent(componentName, page, findVariable, colorCollection) {
         }
     });
 }
-figma.showUI(__html__, { width: 400, height: 500 });
+// Component → page mapping. Each component belongs to a "tag" (a page). When a
+// component is generated, its page is created on demand if it doesn't exist yet.
+const PAGE_STRUCTURE = {
+    '📦 Buttons': ['button', 'button-group'],
+    '📦 Forms': ['input', 'textarea', 'checkbox', 'switch', 'slider', 'label', 'radio-group', 'select', 'native-select', 'combobox', 'date-picker', 'input-otp', 'field'],
+    '📦 Components': ['card', 'badge', 'alert', 'alert-dialog', 'avatar', 'separator', 'skeleton', 'kbd', 'empty', 'item'],
+    '📦 Accordion': ['accordion'],
+    '📦 Navigation': ['tabs', 'breadcrumb', 'pagination', 'menubar', 'navigation-menu'],
+    '📦 Feedback': ['progress', 'spinner', 'tooltip', 'toast', 'sonner'],
+    '📦 Interactive': ['toggle', 'toggle-group'],
+    '📦 Layout': ['collapsible', 'resizable', 'scroll-area', 'aspect-ratio', 'sidebar'],
+    '📦 Overlays': ['dialog', 'popover', 'sheet', 'drawer', 'hover-card'],
+    '📦 Menus': ['dropdown-menu', 'context-menu', 'command'],
+    '📦 Data': ['table', 'calendar', 'chart', 'carousel'],
+    '📦 Forms Advanced': ['form'],
+    '📦 Grids': ['grids'],
+};
+// Reverse lookup: component name → its owning page name.
+const COMPONENT_TO_PAGE = {};
+for (const pageName in PAGE_STRUCTURE) {
+    for (const componentName of PAGE_STRUCTURE[pageName]) {
+        COMPONENT_TO_PAGE[componentName] = pageName;
+    }
+}
+// Find a page by name, creating it if missing, and load it (required for
+// dynamic-page document access before appending nodes).
+function ensurePage(pageName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let page = figma.root.children.find(p => p.name === pageName);
+        if (!page) {
+            page = figma.createPage();
+            page.name = pageName;
+        }
+        yield page.loadAsync();
+        return page;
+    });
+}
+// Stack every top-level node on a page vertically, in creation order.
+function organizePageLayout(page) {
+    const padding = 50;
+    let currentY = 50;
+    // appendChild inserts at index 0, so the first-created node is last. Reverse
+    // to lay them out oldest-first from the top of the page.
+    const children = [...page.children];
+    children.reverse();
+    for (const node of children) {
+        node.x = 50;
+        node.y = currentY;
+        currentY += node.height + padding;
+    }
+}
+// Build the variable-binding context shared by component generation. Returns
+// null (after posting an error) when variables haven't been generated yet.
+function getComponentBindingContext() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const collections = yield figma.variables.getLocalVariableCollectionsAsync();
+        const colorCollection = collections.find(c => c.name === 'shadcn/colors');
+        const numberCollection = collections.find(c => c.name === 'shadcn/numbers');
+        if (!colorCollection) {
+            figma.ui.postMessage({ type: 'status', message: 'Please generate variables first!', status: 'error' });
+            return null;
+        }
+        const allVariables = yield figma.variables.getLocalVariablesAsync();
+        const colorVars = allVariables.filter(v => v.variableCollectionId === colorCollection.id);
+        const numberVars = numberCollection ? allVariables.filter(v => v.variableCollectionId === numberCollection.id) : [];
+        // O(1) name lookup; colors win on name collisions.
+        const variableByName = new Map();
+        for (const v of numberVars)
+            variableByName.set(v.name, v);
+        for (const v of colorVars)
+            variableByName.set(v.name, v);
+        return { findVariable: (name) => variableByName.get(name), colorCollection };
+    });
+}
+figma.showUI(__html__, { width: 400, height: 560 });
 // Tailwind Color Generation
 const tailwindColors = {
     slate: {
@@ -3619,93 +3693,63 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
             figma.ui.postMessage({ type: 'status', message: 'Error: ' + e.message, status: 'error' });
         }
     }
-    if (msg.type === 'generate-components') {
+    // Send the catalog of components (grouped by tag/page) to the UI so it can
+    // render the list. The UI requests this once it has loaded.
+    if (msg.type === 'request-component-list') {
+        figma.ui.postMessage({
+            type: 'component-list',
+            groups: Object.keys(PAGE_STRUCTURE).map(pageName => ({
+                tag: pageName.replace(/^📦\s*/, ''),
+                components: PAGE_STRUCTURE[pageName],
+            })),
+        });
+    }
+    // Generate a single component into its tag's page (created on demand).
+    if (msg.type === 'generate-component') {
         try {
-            figma.ui.postMessage({ type: 'status', message: 'Generating components...', status: 'info' });
-            // Get variable collections for binding
-            const collections = yield figma.variables.getLocalVariableCollectionsAsync();
-            const colorCollection = collections.find(c => c.name === 'shadcn/colors');
-            const numberCollection = collections.find(c => c.name === 'shadcn/numbers');
-            if (!colorCollection) {
-                figma.ui.postMessage({
-                    type: 'status',
-                    message: 'Please generate variables first!',
-                    status: 'error'
-                });
+            const name = msg.name;
+            const pageName = COMPONENT_TO_PAGE[name];
+            if (!pageName) {
+                figma.ui.postMessage({ type: 'status', message: `Unknown component: ${name}`, status: 'error' });
                 return;
             }
-            // Get all variables
-            const allVariables = yield figma.variables.getLocalVariablesAsync();
-            const colorVars = allVariables.filter(v => v.variableCollectionId === colorCollection.id);
-            const numberVars = numberCollection ? allVariables.filter(v => v.variableCollectionId === numberCollection.id) : [];
-            // Index variables by name once. findVariable is called many times per
-            // component across 59 components, so an O(1) map lookup beats repeated
-            // linear scans over every local variable. Colors take precedence on name
-            // collisions, matching the previous `colorVars || numberVars` ordering.
-            const variableByName = new Map();
-            for (const v of numberVars)
-                variableByName.set(v.name, v);
-            for (const v of colorVars)
-                variableByName.set(v.name, v);
-            // Helper to find variable by name
-            const findVariable = (name) => variableByName.get(name);
-            // Create pages
-            const pageStructure = {
-                '📦 Buttons': ['button', 'button-group'],
-                '📦 Forms': ['input', 'textarea', 'checkbox', 'switch', 'slider', 'label', 'radio-group', 'select', 'native-select', 'combobox', 'date-picker', 'input-otp', 'field'],
-                '📦 Components': ['card', 'badge', 'alert', 'alert-dialog', 'avatar', 'separator', 'skeleton', 'kbd', 'empty', 'item'],
-                '📦 Accordion': ['accordion'],
-                '📦 Navigation': ['tabs', 'breadcrumb', 'pagination', 'menubar', 'navigation-menu'],
-                '📦 Feedback': ['progress', 'spinner', 'tooltip', 'toast', 'sonner'],
-                '📦 Interactive': ['toggle', 'toggle-group'],
-                '📦 Layout': ['collapsible', 'resizable', 'scroll-area', 'aspect-ratio', 'sidebar'],
-                '📦 Overlays': ['dialog', 'popover', 'sheet', 'drawer', 'hover-card'],
-                '📦 Menus': ['dropdown-menu', 'context-menu', 'command'],
-                '📦 Data': ['table', 'calendar', 'chart', 'carousel'],
-                '📦 Forms Advanced': ['form'],
-                '📦 Grids': ['grids'],
-            };
+            const ctx = yield getComponentBindingContext();
+            if (!ctx)
+                return;
+            figma.ui.postMessage({ type: 'status', message: `Generating ${name}…`, status: 'info' });
+            const page = yield ensurePage(pageName);
+            yield generateComponent(name, page, ctx.findVariable, ctx.colorCollection);
+            organizePageLayout(page);
+            figma.ui.postMessage({
+                type: 'status',
+                message: `✓ Added "${name}" to ${pageName}`,
+                status: 'success',
+            });
+        }
+        catch (e) {
+            console.error('Plugin Error:', e);
+            const errorMessage = e.message || (typeof e === 'string' ? e : JSON.stringify(e));
+            figma.ui.postMessage({ type: 'status', message: 'Error: ' + errorMessage, status: 'error' });
+        }
+    }
+    // Generate every component across all tags/pages.
+    if (msg.type === 'generate-components') {
+        try {
+            const ctx = yield getComponentBindingContext();
+            if (!ctx)
+                return;
+            figma.ui.postMessage({ type: 'status', message: 'Generating all components…', status: 'info' });
             let componentsCreated = 0;
-            // Helper to organize page layout
-            const organizePageLayout = (page) => {
-                const padding = 50;
-                let currentY = 50;
-                // Figma children are ordered top-to-bottom (index 0 is top).
-                // We want to process them in the order they were created (oldest first),
-                // which corresponds to the bottom of the stack (last index) to top?
-                // No, appendChild adds to the top (index 0).
-                // So the first component created is at the bottom (last index).
-                // We want the first component created to be at the top of the page.
-                // So we should iterate from last index to 0.
-                const children = [...page.children];
-                // Reverse to get [FirstCreated, ..., LastCreated]
-                children.reverse();
-                for (const node of children) {
-                    node.x = 50;
-                    node.y = currentY;
-                    currentY += node.height + padding;
-                }
-            };
-            for (const pageName in pageStructure) {
-                const componentNames = pageStructure[pageName];
-                // Create or find page. pageStructure keys already include the 📦 prefix,
-                // so use the name as-is (avoids a doubled "📦 📦" on the page label).
-                let page = figma.root.children.find(p => p.name === pageName);
-                if (!page) {
-                    page = figma.createPage();
-                    page.name = pageName;
-                }
-                // Load page before appending components (required for dynamic-page mode)
-                yield page.loadAsync();
-                // Generate components on this page
+            for (const pageName in PAGE_STRUCTURE) {
+                const componentNames = PAGE_STRUCTURE[pageName];
+                const page = yield ensurePage(pageName);
                 for (const componentName of componentNames) {
-                    yield generateComponent(componentName, page, findVariable, colorCollection);
+                    yield generateComponent(componentName, page, ctx.findVariable, ctx.colorCollection);
                     componentsCreated++;
                 }
-                // Organize layout
                 organizePageLayout(page);
             }
-            const pageCount = Object.keys(pageStructure).length;
+            const pageCount = Object.keys(PAGE_STRUCTURE).length;
             figma.ui.postMessage({
                 type: 'status',
                 message: `✓ Generated ${componentsCreated} components across ${pageCount} pages!`,

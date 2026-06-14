@@ -77,32 +77,72 @@
             color: var(--secondary-foreground);
         }
 
-        #customSection {
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        #customSection.visible {
-            display: flex;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--input);
+        .component-list {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border);
             border-radius: var(--radius);
-            font-family: monospace;
-            font-size: 11px;
-            resize: vertical;
-            min-height: 200px;
-            box-sizing: border-box;
+            margin-bottom: 8px;
         }
 
-        textarea:focus {
-            outline: none;
-            border-color: var(--ring);
-            box-shadow: 0 0 0 1px var(--ring);
+        .list-empty {
+            padding: 16px 12px;
+            font-size: 12px;
+            color: var(--muted-foreground);
+        }
+
+        .tag-header {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 8px 12px 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted-foreground);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .component-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .component-row:hover {
+            background: var(--secondary);
+        }
+
+        .component-name {
+            color: var(--primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .add-btn {
+            background: var(--secondary);
+            color: var(--secondary-foreground);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .add-btn:hover {
+            opacity: 0.85;
+        }
+
+        .add-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         #status {
@@ -203,37 +243,25 @@
 
 <body>
     <h2>Shadcn Variables Generator</h2>
-    <p>Automatically generate Figma variables from Shadcn design tokens with one click.</p>
+    <p>Generate Figma variables from the Shadcn design tokens, then add components.</p>
 
     <div class="button-group">
         <button id="generateBtn">Generate Variables</button>
-        <button id="toggleCustomBtn" class="secondary">Use Custom CSS</button>
-    </div>
-
-    <div id="customSection">
-        <p style="margin-bottom: 8px;">Paste your custom <code>globals.css</code> content:</p>
-        <textarea id="cssInput" placeholder=":root {
-  --background: 0.145 0 0;
-  --foreground: 0.985 0 0;
-  ...
-}
-
-.dark {
-  --background: 0.985 0 0;
-  ...
-}"></textarea>
-        <button id="generateCustomBtn">Generate from Custom CSS</button>
     </div>
 
     <div class="divider"></div>
 
-    <h2>Component Generation</h2>
-    <p>Generate Shadcn components with auto-layout and variants.</p>
+    <h2>Components</h2>
+    <p>Add a single component to its page, or add them all at once. Pages are created automatically.</p>
+
     <div class="button-group">
-        <button id="generateComponentsBtn">Generate Components</button>
+        <button id="generateComponentsBtn">Add All Components</button>
     </div>
 
-    <div class="divider"></div>
+    <div id="componentList" class="component-list">
+        <div class="list-empty">Loading components…</div>
+    </div>
+
     <div id="status"></div>
 
     <div class="footer">
@@ -282,20 +310,16 @@
 
     <script>
         const generateBtn = document.getElementById('generateBtn');
-        const toggleCustomBtn = document.getElementById('toggleCustomBtn');
-        const generateCustomBtn = document.getElementById('generateCustomBtn');
         const generateComponentsBtn = document.getElementById('generateComponentsBtn');
-        const customSection = document.getElementById('customSection');
-        const cssInput = document.getElementById('cssInput');
+        const componentList = document.getElementById('componentList');
         const status = document.getElementById('status');
 
-        let isCustomMode = false;
         let isBusy = false;
 
-        // Buttons that trigger long-running plugin jobs. Locked while a job runs
-        // so the user can't queue duplicate runs (which would create duplicate
-        // pages/variables).
-        const actionButtons = [generateBtn, generateCustomBtn, generateComponentsBtn];
+        // Every clickable control that triggers a plugin job. Locked while a job
+        // runs so the user can't queue duplicate runs. Per-component "Add"
+        // buttons are added here as the list renders.
+        const actionButtons = [generateBtn, generateComponentsBtn];
 
         function setBusy(busy) {
             isBusy = busy;
@@ -305,38 +329,52 @@
             });
         }
 
-        generateBtn.onclick = () => {
+        function send(message) {
             if (isBusy) return;
             setBusy(true);
-            parent.postMessage({ pluginMessage: { type: 'generate-variables', useDefault: true } }, '*');
-        };
+            parent.postMessage({ pluginMessage: message }, '*');
+        }
 
-        toggleCustomBtn.onclick = () => {
-            isCustomMode = !isCustomMode;
-            customSection.classList.toggle('visible', isCustomMode);
-            toggleCustomBtn.textContent = isCustomMode ? 'Use Default Tokens' : 'Use Custom CSS';
-        };
+        generateBtn.onclick = () => send({ type: 'generate-variables', useDefault: true });
+        generateComponentsBtn.onclick = () => send({ type: 'generate-components' });
 
-        generateCustomBtn.onclick = () => {
-            if (isBusy) return;
-            const css = cssInput.value;
-            if (!css.trim()) {
-                showStatus('Please paste some CSS first.', 'error');
-                return;
-            }
-            setBusy(true);
-            parent.postMessage({ pluginMessage: { type: 'generate-variables', css, useDefault: false } }, '*');
-        };
+        // Build the grouped component list from the catalog sent by the plugin.
+        function renderComponentList(groups) {
+            componentList.innerHTML = '';
+            groups.forEach(group => {
+                const header = document.createElement('div');
+                header.className = 'tag-header';
+                header.textContent = group.tag;
+                componentList.appendChild(header);
 
-        generateComponentsBtn.onclick = () => {
-            if (isBusy) return;
-            setBusy(true);
-            parent.postMessage({ pluginMessage: { type: 'generate-components' } }, '*');
-        };
+                group.components.forEach(name => {
+                    const row = document.createElement('div');
+                    row.className = 'component-row';
+
+                    const label = document.createElement('span');
+                    label.className = 'component-name';
+                    label.textContent = name;
+
+                    const btn = document.createElement('button');
+                    btn.className = 'add-btn';
+                    btn.textContent = 'Add';
+                    btn.onclick = () => send({ type: 'generate-component', name });
+                    actionButtons.push(btn);
+
+                    row.appendChild(label);
+                    row.appendChild(btn);
+                    componentList.appendChild(row);
+                });
+            });
+        }
 
         window.onmessage = (event) => {
             const msg = event.data.pluginMessage;
-            if (msg.type === 'status') {
+            if (!msg) return;
+
+            if (msg.type === 'component-list') {
+                renderComponentList(msg.groups);
+            } else if (msg.type === 'status') {
                 showStatus(msg.message, msg.status);
                 // Re-enable the UI once a job reaches a terminal state.
                 if (msg.status === 'success' || msg.status === 'error') {
@@ -344,6 +382,9 @@
                 }
             }
         };
+
+        // Ask the plugin for the component catalog now that the UI is ready.
+        parent.postMessage({ pluginMessage: { type: 'request-component-list' } }, '*');
 
         function showStatus(message, type) {
             status.textContent = message;

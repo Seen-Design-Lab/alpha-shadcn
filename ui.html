@@ -77,32 +77,239 @@
             color: var(--secondary-foreground);
         }
 
-        #customSection {
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        #customSection.visible {
+        /* Components header + view toggle */
+        .components-header {
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
         }
 
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--input);
+        .components-header h2 {
+            margin: 0;
+        }
+
+        .view-toggle {
+            display: inline-flex;
+            border: 1px solid var(--border);
             border-radius: var(--radius);
-            font-family: monospace;
-            font-size: 11px;
-            resize: vertical;
-            min-height: 200px;
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            background: transparent;
+            color: var(--muted-foreground);
+            border: none;
+            padding: 5px 8px;
+            border-radius: 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .view-toggle button svg {
+            width: 14px;
+            height: 14px;
+            display: block;
+        }
+
+        .view-toggle button.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+        }
+
+        /* Breadcrumb (inside a category) */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .back-btn,
+        .link-btn {
+            background: transparent;
+            border: none;
+            padding: 2px 0;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        .link-btn {
+            color: var(--muted-foreground);
+        }
+
+        .back-btn:hover,
+        .link-btn:hover {
+            opacity: 0.8;
+        }
+
+        .back-btn:disabled,
+        .link-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Scrollable component / folder area */
+        .component-area {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            padding: 8px;
             box-sizing: border-box;
         }
 
-        textarea:focus {
-            outline: none;
+        .component-area.view-card {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            align-content: start;
+        }
+
+        .component-area.view-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 0;
+        }
+
+        .list-empty {
+            padding: 16px 12px;
+            font-size: 12px;
+            color: var(--muted-foreground);
+            grid-column: 1 / -1;
+        }
+
+        /* A tile (folder or component) — card mode */
+        .tile {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .tile-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tile-icon {
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .tile-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tile-meta {
+            font-size: 10px;
+            color: var(--muted-foreground);
+        }
+
+        .folder.tile {
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .folder.tile:hover {
             border-color: var(--ring);
-            box-shadow: 0 0 0 1px var(--ring);
+            background: var(--secondary);
+        }
+
+        /* List mode: tiles collapse into compact rows */
+        .view-list .tile {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            border-radius: 0;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        .view-list .tile:last-child {
+            border-bottom: none;
+        }
+
+        .view-list .tile-meta {
+            margin-left: auto;
+        }
+
+        .view-list .folder.tile:hover {
+            background: var(--secondary);
+            border-color: transparent;
+        }
+
+        .add-btn {
+            background: var(--secondary);
+            color: var(--secondary-foreground);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .view-card .add-btn {
+            width: 100%;
+        }
+
+        .add-btn:hover {
+            opacity: 0.85;
+        }
+
+        .add-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chevron {
+            color: var(--muted-foreground);
+            font-size: 14px;
+            margin-left: auto;
+        }
+
+        .view-card .folder .chevron {
+            display: none;
+        }
+
+        .resize-handle {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            cursor: nwse-resize;
+            color: var(--border);
+            z-index: 2000;
+            touch-action: none;
+        }
+
+        .resize-handle:hover {
+            color: var(--muted-foreground);
+        }
+
+        .resize-handle svg {
+            display: block;
+            width: 16px;
+            height: 16px;
         }
 
         #status {
@@ -136,7 +343,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            flex-wrap: wrap;
+            gap: 12px 16px;
         }
 
         .footer-links a {
@@ -158,6 +366,39 @@
             width: 16px;
             height: 16px;
             display: block;
+        }
+
+        .creator-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted-foreground);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .creator-link:hover {
+            color: var(--primary);
+        }
+
+        .creator-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        /* The creator link has its own visible text, so suppress the icon-style
+           hover tooltip used by the other footer links. */
+        .creator-link::before,
+        .creator-link::after {
+            content: none;
+            display: none;
         }
 
         /* Custom tooltip styling */
@@ -203,37 +444,41 @@
 
 <body>
     <h2>Shadcn Variables Generator</h2>
-    <p>Automatically generate Figma variables from Shadcn design tokens with one click.</p>
+    <p>Generate Figma variables from the Shadcn design tokens, then add components.</p>
 
     <div class="button-group">
         <button id="generateBtn">Generate Variables</button>
-        <button id="toggleCustomBtn" class="secondary">Use Custom CSS</button>
-    </div>
-
-    <div id="customSection">
-        <p style="margin-bottom: 8px;">Paste your custom <code>globals.css</code> content:</p>
-        <textarea id="cssInput" placeholder=":root {
-  --background: 0.145 0 0;
-  --foreground: 0.985 0 0;
-  ...
-}
-
-.dark {
-  --background: 0.985 0 0;
-  ...
-}"></textarea>
-        <button id="generateCustomBtn">Generate from Custom CSS</button>
     </div>
 
     <div class="divider"></div>
 
-    <h2>Component Generation</h2>
-    <p>Generate Shadcn components with auto-layout and variants.</p>
+    <div class="components-header">
+        <h2 id="componentsTitle">Components</h2>
+        <div class="view-toggle" role="group" aria-label="View mode">
+            <button id="cardViewBtn" class="active" title="Card view" aria-label="Card view">
+                <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+            </button>
+            <button id="listViewBtn" title="List view" aria-label="List view">
+                <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2.5" rx="1"/><rect x="1" y="6.75" width="14" height="2.5" rx="1"/><rect x="1" y="11.5" width="14" height="2.5" rx="1"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="breadcrumb" class="breadcrumb" style="display:none;">
+        <button id="backBtn" class="back-btn">← All categories</button>
+        <button id="addCategoryBtn" class="link-btn">Add all</button>
+    </div>
+
+    <p id="componentsHint">Pick a category to browse and add components. Pages are created automatically.</p>
+
     <div class="button-group">
-        <button id="generateComponentsBtn">Generate Components</button>
+        <button id="generateComponentsBtn">Add All Components</button>
     </div>
 
-    <div class="divider"></div>
+    <div id="componentArea" class="component-area view-card">
+        <div class="list-empty">Loading components…</div>
+    </div>
+
     <div id="status"></div>
 
     <div class="footer">
@@ -277,48 +522,183 @@
                     </path>
                 </svg>
             </a>
+            <a href="https://x.com/rakibulism" target="_blank" class="creator-link">
+                <span>❤️ creator on X</span>
+                <img id="creatorAvatar" class="creator-avatar" src="data:image/jpeg;base64,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"
+                    alt="Rakibul" />
+            </a>
         </div>
+    </div>
+
+    <div id="resizeHandle" class="resize-handle" title="Drag to resize">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M14 14H11L14 11V14ZM14 8L8 14H6L14 6V8Z"></path>
+        </svg>
     </div>
 
     <script>
         const generateBtn = document.getElementById('generateBtn');
-        const toggleCustomBtn = document.getElementById('toggleCustomBtn');
-        const generateCustomBtn = document.getElementById('generateCustomBtn');
         const generateComponentsBtn = document.getElementById('generateComponentsBtn');
-        const customSection = document.getElementById('customSection');
-        const cssInput = document.getElementById('cssInput');
+        const componentArea = document.getElementById('componentArea');
+        const componentsTitle = document.getElementById('componentsTitle');
+        const componentsHint = document.getElementById('componentsHint');
+        const breadcrumb = document.getElementById('breadcrumb');
+        const backBtn = document.getElementById('backBtn');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const cardViewBtn = document.getElementById('cardViewBtn');
+        const listViewBtn = document.getElementById('listViewBtn');
         const status = document.getElementById('status');
 
-        let isCustomMode = false;
+        let isBusy = false;
+        let groups = [];          // [{ tag, components: [] }]
+        let currentTag = null;    // null = folder view; otherwise the open category
+        let viewMode = 'card';    // 'card' | 'list'
 
-        generateBtn.onclick = () => {
-            parent.postMessage({ pluginMessage: { type: 'generate-variables', useDefault: true } }, '*');
-        };
+        // Lock every button while a job runs so duplicate runs can't be queued.
+        function setBusy(busy) {
+            isBusy = busy;
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = busy;
+            });
+        }
 
-        toggleCustomBtn.onclick = () => {
-            isCustomMode = !isCustomMode;
-            customSection.classList.toggle('visible', isCustomMode);
-            toggleCustomBtn.textContent = isCustomMode ? 'Use Default Tokens' : 'Use Custom CSS';
-        };
+        function send(message) {
+            if (isBusy) return;
+            setBusy(true);
+            parent.postMessage({ pluginMessage: message }, '*');
+        }
 
-        generateCustomBtn.onclick = () => {
-            const css = cssInput.value;
-            if (!css.trim()) {
-                showStatus('Please paste some CSS first.', 'error');
-                return;
+        // Turn "radio-group" into "Radio Group" for display.
+        function prettify(name) {
+            return name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        generateBtn.onclick = () => send({ type: 'generate-variables', useDefault: true });
+        generateComponentsBtn.onclick = () => send({ type: 'generate-components' });
+
+        cardViewBtn.onclick = () => setView('card');
+        listViewBtn.onclick = () => setView('list');
+
+        function setView(mode) {
+            viewMode = mode;
+            cardViewBtn.classList.toggle('active', mode === 'card');
+            listViewBtn.classList.toggle('active', mode === 'list');
+            componentArea.classList.toggle('view-card', mode === 'card');
+            componentArea.classList.toggle('view-list', mode === 'list');
+            render();
+        }
+
+        backBtn.onclick = () => { currentTag = null; render(); };
+        addCategoryBtn.onclick = () => { if (currentTag) send({ type: 'generate-category', tag: currentTag }); };
+
+        // Render either the folder grid or the open category's components.
+        function render() {
+            componentArea.innerHTML = '';
+
+            if (currentTag === null) {
+                // --- Folder / category view ---
+                componentsTitle.textContent = 'Components';
+                breadcrumb.style.display = 'none';
+                componentsHint.style.display = '';
+                generateComponentsBtn.style.display = '';
+
+                if (!groups.length) {
+                    componentArea.innerHTML = '<div class="list-empty">Loading components…</div>';
+                    return;
+                }
+
+                groups.forEach(group => {
+                    const tile = document.createElement('div');
+                    tile.className = 'folder tile';
+                    tile.onclick = () => { currentTag = group.tag; render(); };
+
+                    const top = document.createElement('div');
+                    top.className = 'tile-top';
+                    top.innerHTML = '<span class="tile-icon">📦</span>'
+                        + '<span class="tile-name">' + group.tag + '</span>'
+                        + '<span class="chevron">›</span>';
+
+                    const meta = document.createElement('span');
+                    meta.className = 'tile-meta';
+                    meta.textContent = group.components.length
+                        + (group.components.length === 1 ? ' component' : ' components');
+
+                    tile.appendChild(top);
+                    tile.appendChild(meta);
+                    componentArea.appendChild(tile);
+                });
+            } else {
+                // --- Inside a category ---
+                const group = groups.find(g => g.tag === currentTag);
+                componentsTitle.textContent = currentTag;
+                breadcrumb.style.display = 'flex';
+                componentsHint.style.display = 'none';
+                generateComponentsBtn.style.display = 'none';
+
+                if (!group) { componentArea.innerHTML = '<div class="list-empty">Empty.</div>'; return; }
+
+                group.components.forEach(name => {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+
+                    const nameEl = document.createElement('span');
+                    nameEl.className = 'tile-name';
+                    nameEl.textContent = prettify(name);
+
+                    const btn = document.createElement('button');
+                    btn.className = 'add-btn';
+                    btn.textContent = 'Add';
+                    btn.onclick = () => send({ type: 'generate-component', name });
+
+                    tile.appendChild(nameEl);
+                    tile.appendChild(btn);
+                    componentArea.appendChild(tile);
+                });
             }
-            parent.postMessage({ pluginMessage: { type: 'generate-variables', css, useDefault: false } }, '*');
-        };
-
-        generateComponentsBtn.onclick = () => {
-            parent.postMessage({ pluginMessage: { type: 'generate-components' } }, '*');
-        };
+        }
 
         window.onmessage = (event) => {
             const msg = event.data.pluginMessage;
-            if (msg.type === 'status') {
+            if (!msg) return;
+
+            if (msg.type === 'component-list') {
+                groups = msg.groups || [];
+                render();
+            } else if (msg.type === 'status') {
                 showStatus(msg.message, msg.status);
+                // Re-enable the UI once a job reaches a terminal state.
+                if (msg.status === 'success' || msg.status === 'error') {
+                    setBusy(false);
+                }
             }
+        };
+
+        // Ask the plugin for the component catalog now that the UI is ready.
+        parent.postMessage({ pluginMessage: { type: 'request-component-list' } }, '*');
+
+        // --- Window resizing ---------------------------------------------------
+        // The iframe fills the plugin window, so the pointer's viewport
+        // coordinates equal the desired window size. Drag the corner handle to
+        // resize; the plugin clamps to a minimum and persists the size.
+        const resizeHandle = document.getElementById('resizeHandle');
+        let resizing = false;
+
+        resizeHandle.onpointerdown = (e) => {
+            resizing = true;
+            resizeHandle.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        };
+
+        resizeHandle.onpointermove = (e) => {
+            if (!resizing) return;
+            const width = Math.max(320, Math.ceil(e.clientX + 4));
+            const height = Math.max(400, Math.ceil(e.clientY + 4));
+            parent.postMessage({ pluginMessage: { type: 'resize', width, height } }, '*');
+        };
+
+        resizeHandle.onpointerup = (e) => {
+            resizing = false;
+            resizeHandle.releasePointerCapture(e.pointerId);
         };
 
         function showStatus(message, type) {
